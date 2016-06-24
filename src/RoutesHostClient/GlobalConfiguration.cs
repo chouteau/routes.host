@@ -14,7 +14,8 @@ namespace RoutesHostClient
 			return new RoutesHostConfiguration()
 			{
 				BaseAddress = "http://routes.host",
-				Logger = new DiagnosticsLogger()
+				Logger = new DiagnosticsLogger(),
+				RouteServer = new RemoteRoutesServer()
 			};
 		}, true);
 

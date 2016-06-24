@@ -8,10 +8,8 @@ namespace RoutesHostClient
 {
 	public class RoutesHostConfiguration
 	{
-		public RoutesHostConfiguration()
-		{
-		}
 		public ILogger Logger { get; set; }
 		public string BaseAddress { get; set; }
+		public IRoutesServer RouteServer { get; set; }
 	}
 }

@@ -36,6 +36,7 @@ namespace RoutesHostServer.Services
 			{
 				return;
 			}
+			item.CreationDate = DateTime.Now;
 			Retry((list) =>
 			{
 				var result = RoutesRepository.TryAdd(key, item);
