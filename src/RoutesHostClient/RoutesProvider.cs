@@ -35,11 +35,13 @@ namespace RoutesHostClient
 		public void Register(RoutesHost.Models.Route route)
 		{
 			RouteServer.Register(route);
+			GlobalConfiguration.Configuration.Logger.Info($"Route for service {route.ServiceName} registered with address {route.WebApiAddress}");
 		}
 
 		public void UnRegister(string apiKey, string serviceName)
 		{
 			RouteServer.UnRegister(apiKey, serviceName);
+			GlobalConfiguration.Configuration.Logger.Info($"Route for service {serviceName} was unregistered");
 		}
 
 		public string Resolve(string apiKey, string serviceName)

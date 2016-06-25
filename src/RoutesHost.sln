@@ -9,6 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoutesHostClient", "RoutesH
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6BF8EBFC-61D2-45E3-9682-C0AA5D516549}"
 	ProjectSection(SolutionItems) = preProject
+		..\ChangeLog.md = ..\ChangeLog.md
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
