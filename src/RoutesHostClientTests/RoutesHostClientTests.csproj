@@ -91,6 +91,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="..\RoutesHostServer\Models\Route.cs">
+      <Link>Route.cs</Link>
+    </Compile>
     <Compile Include="..\RoutesHostServer\Services\RoutesProvider.cs">
       <Link>RoutesProvider.cs</Link>
     </Compile>

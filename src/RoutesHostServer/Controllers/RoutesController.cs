@@ -19,7 +19,7 @@ namespace RoutesHostServer.Controllers
 		}
 
 		[HttpPut]
-		public void Register(RoutesHost.Models.Route route)
+		public string Register(Models.Route route)
 		{
 			if (route == null)
 			{
@@ -32,18 +32,33 @@ namespace RoutesHostServer.Controllers
 				throw new ArgumentException("route is not valid");
 			}
 			var uri = new Uri(route.WebApiAddress);
-			Services.RoutesProvider.Current.Register(route);
+			var result = Services.RoutesProvider.Current.Register(route);
+			if (result != Guid.Empty)
+			{
+				return result.ToString();
+			}
+			return null;
 		}
 
 		[HttpDelete]
-		public void UnRegister(string apiKey, string serviceName)
+		public void UnRegister(string id)
 		{
-			if (apiKey == null 
+			if (id == null)
+			{
+				throw new ArgumentNullException();
+			}
+			Services.RoutesProvider.Current.UnRegister(id);
+		}
+
+		[HttpDelete]
+		public void UnRegisterService(string apiKey, string serviceName)
+		{
+			if (apiKey == null
 				|| serviceName == null)
 			{
 				throw new ArgumentNullException();
 			}
-			Services.RoutesProvider.Current.UnRegister(apiKey, serviceName);
+			Services.RoutesProvider.Current.UnRegisterService(apiKey, serviceName);
 		}
 
 		[HttpGet]

@@ -13,11 +13,11 @@ namespace RoutesHostServer.Services
 			return new RoutesProvider();
 		}, true);
 
-		protected ConcurrentDictionary<string, RoutesHost.Models.Route> RoutesRepository { get; private set; }
+		protected ConcurrentDictionary<string, List<Models.Route>> RoutesRepository { get; private set; }
 
 		private RoutesProvider()
 		{
-			RoutesRepository = new ConcurrentDictionary<string, RoutesHost.Models.Route>();
+			RoutesRepository = new ConcurrentDictionary<string, List<Models.Route>>();
 		}
 		
 		public static RoutesProvider Current
@@ -28,60 +28,109 @@ namespace RoutesHostServer.Services
 			}
 		}
 
-		public void Register(RoutesHost.Models.Route item)
+		public Guid Register(Models.Route item)
 		{
-			var key = $"{item.ApiKey}|{item.ServiceName}";
+			var key = $"{item.ApiKey}|{item.ServiceName}".ToLower();
 			var existing = RoutesRepository.ContainsKey(key);
+			Guid id = Guid.Empty;
 			if (existing)
 			{
-				return;
+				List<Models.Route> routes = null;
+				Retry((list) =>
+				{
+					var result = RoutesRepository.TryGetValue(key, out routes);
+					if (result)
+					{
+						var route = routes.SingleOrDefault(i => $"{i.ApiKey}|{i.ServiceName}".Equals(key, StringComparison.InvariantCultureIgnoreCase) && i.Priority == item.Priority);
+						if (route == null)
+						{
+							id = item.Id = Guid.NewGuid();
+							routes.Add(item);
+						}
+					}
+					return result;
+				});
+				return id;
 			}
 			item.CreationDate = DateTime.Now;
 			Retry((list) =>
 			{
-				var result = RoutesRepository.TryAdd(key, item);
+				var routes = new List<Models.Route>();
+				id = item.Id = Guid.NewGuid();
+				routes.Add(item);
+				var result = RoutesRepository.TryAdd(key, routes);
 				return result;
 			});
+
+			return id;
 		}
 
-		public void UnRegister(string apiKey, string serviceName)
+		public void UnRegister(string routeId)
 		{
-			var key = $"{apiKey}|{serviceName}";
+			foreach (var key in RoutesRepository.Keys)
+			{
+				List<Models.Route> routes = null;
+				Retry((list) =>
+				{
+					var result = RoutesRepository.TryGetValue(key, out routes);
+					if (result)
+					{
+						var route = routes.SingleOrDefault(i => i.Id == new Guid(routeId));
+						if (route != null)
+						{
+							routes.Remove(route);
+						}
+					}
+					if (routes.Count == 0)
+					{
+						result = RoutesRepository.TryRemove(key, out routes);
+						return result;
+					}
+					return true;
+				});
+			}
+		}
+
+		public void UnRegisterService(string apiKey, string serviceName)
+		{
+			var key = $"{apiKey}|{serviceName}".ToLower();
 			var exists = RoutesRepository.ContainsKey(key);
 			if (!exists)
 			{
 				return;
 			}
-			RoutesHost.Models.Route item = null;
+
+			List<Models.Route> routes = null;
 			Retry((list) =>
 			{
-				var result = RoutesRepository.TryRemove(key, out item);
+				var result = RoutesRepository.TryRemove(key, out routes);
 				return result;
 			});
 		}
 
 		public string Resolve(string apiKey, string serviceName)
 		{
-			var key = $"{apiKey}|{serviceName}";
+			var key = $"{apiKey}|{serviceName}".ToLower();
 			var exists = RoutesRepository.ContainsKey(key);
 			if (!exists)
 			{
 				return null;
 			}
-			RoutesHost.Models.Route item = null;
+			List<Models.Route> routes = null;
 			Retry((list) =>
 			{
-				var result = list.TryGetValue(key, out item);
+				var result = list.TryGetValue(key, out routes);
 				return result;
 			});
-			if (item != null)
+			if (routes != null)
 			{
+				var item = routes.OrderBy(i => i.Priority).FirstOrDefault();
 				return item.WebApiAddress;
 			}
 			return null;
 		}
 
-		private void Retry(Func<ConcurrentDictionary<string, RoutesHost.Models.Route>, bool> predicate, int retryCount = 3)
+		private void Retry(Func<ConcurrentDictionary<string, List<Models.Route>>, bool> predicate, int retryCount = 3)
 		{
 			var loop = 0;
 			while (true)

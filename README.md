@@ -1,4 +1,5 @@
-# routes.host
+# Routes.Host
+
 Route provider for micro-services
 
 ## Installation
@@ -14,12 +15,35 @@ var route = new RoutesHost.Models.Route();
 route.ApiKey = "{clé}";
 route.ServiceName = "IOrder";
 route.WebApiAddress = "http://localhost:65432/";
+route.Priority = 1;
 
-RoutesHostClient.RoutesProvider.Current.Register(route);
+var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
 
 ```
 
-## Appel d'un micro service
+Il est possible d'enregistrer un meme service et une adresse differente avec une autre priorité, lors de la résolution de l'adresse du service, la valeur de l'adresse retournée sera toujours celle de la route avec la plus haute priorité. La priorité par défaut est 1
+
+#### Suppression d'une route
+
+pour supprimer un service, il faut récupérer la valeur de retour de l'enregistrement et la passer à la methode **unregister**
+
+```c#
+
+RoutesHostClient.RoutesProvider.Current.UnRegister(routeId);
+
+```
+
+A noter , il est possible de supprimer toutes les routes d'un service via l'appel à la methode **unregisterservice**
+
+```c#
+
+RoutesHostClient.RoutesProvider.Current.UnRegisterService(apiKey, serviceName);
+
+```
+
+
+
+## Résolution d'addresse d'un micro service
 
 ```c#
 

@@ -34,7 +34,7 @@ namespace RoutesHostServerTests
 			var isInvalid = false;
 			try
 			{
-				controller.Register(new RoutesHost.Models.Route());
+				controller.Register(new RoutesHostServer.Models.Route());
 			}
 			catch (ArgumentException)
 			{
@@ -49,7 +49,7 @@ namespace RoutesHostServerTests
 		{
 			var controller = new RoutesHostServer.Controllers.RoutesController();
 
-			var route = new RoutesHost.Models.Route();
+			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
 			route.ServiceName = "Test";
 			route.WebApiAddress = "http://test.com";
@@ -61,11 +61,11 @@ namespace RoutesHostServerTests
 		}
 
 		[TestMethod]
-		public void Register_Existing_Route()
+		public void Register_Existing_Route_With_Same_Priority()
 		{
 			var controller = new RoutesHostServer.Controllers.RoutesController();
 
-			var route = new RoutesHost.Models.Route();
+			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
 			route.ServiceName = "Test";
 			route.WebApiAddress = "http://test.com";
@@ -75,6 +75,28 @@ namespace RoutesHostServerTests
 			var address = controller.Resolve(route.ApiKey, route.ServiceName);
 			Check.That(address).IsEqualTo(route.WebApiAddress);
 		}
+
+		[TestMethod]
+		public void Register_Existing_Route_With_Less_Priority()
+		{
+			var controller = new RoutesHostServer.Controllers.RoutesController();
+
+			var route = new RoutesHostServer.Models.Route();
+			route.ApiKey = Guid.NewGuid().ToString();
+			route.ServiceName = "Test";
+			route.WebApiAddress = "http://test.com";
+			route.Priority = 1;
+			controller.Register(route);
+
+			var lessRoute = (RoutesHostServer.Models.Route) route.Clone();
+			lessRoute.Priority = 2;
+
+			controller.Register(lessRoute);
+
+			var address = controller.Resolve(route.ApiKey, route.ServiceName);
+			Check.That(address).IsEqualTo(route.WebApiAddress);
+		}
+
 
 		[TestMethod]
 		public void Resolve_Unknown_Route()
@@ -91,7 +113,7 @@ namespace RoutesHostServerTests
 		{
 			var controller = new RoutesHostServer.Controllers.RoutesController();
 
-			var route = new RoutesHost.Models.Route();
+			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
 			route.ServiceName = "Test";
 			route.WebApiAddress = "http://test.com";
@@ -101,11 +123,60 @@ namespace RoutesHostServerTests
 
 			Check.That(address).IsEqualTo(route.WebApiAddress);
 
-			controller.UnRegister(route.ApiKey, route.ServiceName);
+			controller.UnRegister(route.Id.ToString());
 
 			address = controller.Resolve(route.ApiKey, route.ServiceName);
 
 			Check.That(address).IsNull();
 		}
+
+		[TestMethod]
+		public void Add_Routes_With_Priorities_And_Unregister_First()
+		{
+			var controller = new RoutesHostServer.Controllers.RoutesController();
+
+			var route = new RoutesHostServer.Models.Route();
+			route.ApiKey = Guid.NewGuid().ToString();
+			route.ServiceName = "Test";
+			route.WebApiAddress = "http://test.com";
+			controller.Register(route);
+
+			var lessRoute =(RoutesHostServer.Models.Route)route.Clone();
+			lessRoute.Priority = 2;
+			controller.Register(lessRoute);
+
+			var address = controller.Resolve(route.ApiKey, route.ServiceName);
+
+			Check.That(address).IsEqualTo(route.WebApiAddress);
+
+			controller.UnRegister(route.Id.ToString());
+
+			address = controller.Resolve(route.ApiKey, route.ServiceName);
+
+			Check.That(address).IsNotNull();
+		}
+
+		[TestMethod]
+		public void Unregister_Service()
+		{
+			var controller = new RoutesHostServer.Controllers.RoutesController();
+
+			var route = new RoutesHostServer.Models.Route();
+			route.ApiKey = Guid.NewGuid().ToString();
+			route.ServiceName = "Test";
+			route.WebApiAddress = "http://test.com";
+			controller.Register(route);
+
+			var address = controller.Resolve(route.ApiKey, route.ServiceName);
+
+			Check.That(address).IsEqualTo(route.WebApiAddress);
+
+			controller.UnRegisterService(route.ApiKey, route.ServiceName);
+
+			address = controller.Resolve(route.ApiKey, route.ServiceName);
+
+			Check.That(address).IsNull();
+		}
+
 	}
 }

@@ -48,14 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\RoutesHostServer\Models\Route.cs">
-      <Link>Route.cs</Link>
-    </Compile>
     <Compile Include="DiagnosticLogger.cs" />
     <Compile Include="GlobalConfiguration.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="IRoutesServer.cs" />
     <Compile Include="RemoteRoutesServer.cs" />
+    <Compile Include="Route.cs" />
     <Compile Include="RoutesHostConfiguration.cs" />
     <Compile Include="RoutesProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

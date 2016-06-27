@@ -9,7 +9,7 @@ namespace RoutesHostClient
 {
 	internal class RemoteRoutesServer : IRoutesServer
 	{
-		public void Register(RoutesHost.Models.Route route)
+		public void Register(Route route)
 		{
 			ExecuteRetry<object>((client) =>
 			{
@@ -17,11 +17,11 @@ namespace RoutesHostClient
 			}, false);
 		}
 
-		public void UnRegister(string apiKey, string serviceName)
+		public void UnRegister(string routeId)
 		{
 			ExecuteRetry<object>((client) =>
 			{
-				return client.DeleteAsync($"api/routes/unregister/?apikey={apiKey}&serviceName={serviceName}").Result;
+				return client.DeleteAsync($"api/routes/unregister/{routeId}").Result;
 			}, false);
 		}
 

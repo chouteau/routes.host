@@ -13,7 +13,7 @@ namespace RoutesHostClientTests
 		{
 			RoutesHostClient.GlobalConfiguration.Configuration.RouteServer = new RouteServerTest();
 
-			var route = new RoutesHost.Models.Route();
+			var route = new RoutesHostClient.Route();
 			route.ApiKey = "test";
 			route.ServiceName = "myservice";
 			route.WebApiAddress = "http://localhost:1234";
@@ -31,7 +31,7 @@ namespace RoutesHostClientTests
 			MiniServer.Start();
 			RoutesHostClient.GlobalConfiguration.Configuration.RouteServer = new RouteServerTest();
 			
-			var route = new RoutesHost.Models.Route();
+			var route = new RoutesHostClient.Route();
 			route.ApiKey = "test";
 			route.ServiceName = "ping";
 			route.WebApiAddress = "http://localhost:65432/";
