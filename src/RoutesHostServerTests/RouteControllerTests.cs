@@ -123,7 +123,7 @@ namespace RoutesHostServerTests
 
 			Check.That(address).IsEqualTo(route.WebApiAddress);
 
-			controller.UnRegister(route.Id.ToString());
+			controller.UnRegister(route.Id);
 
 			address = controller.Resolve(route.ApiKey, route.ServiceName);
 
@@ -149,7 +149,7 @@ namespace RoutesHostServerTests
 
 			Check.That(address).IsEqualTo(route.WebApiAddress);
 
-			controller.UnRegister(route.Id.ToString());
+			controller.UnRegister(route.Id);
 
 			address = controller.Resolve(route.ApiKey, route.ServiceName);
 

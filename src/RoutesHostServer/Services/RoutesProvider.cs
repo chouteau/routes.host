@@ -13,7 +13,7 @@ namespace RoutesHostServer.Services
 			return new RoutesProvider();
 		}, true);
 
-		protected ConcurrentDictionary<string, List<Models.Route>> RoutesRepository { get; private set; }
+		internal ConcurrentDictionary<string, List<Models.Route>> RoutesRepository { get; private set; }
 
 		private RoutesProvider()
 		{
@@ -65,7 +65,7 @@ namespace RoutesHostServer.Services
 			return id;
 		}
 
-		public void UnRegister(string routeId)
+		public void UnRegister(Guid routeId)
 		{
 			foreach (var key in RoutesRepository.Keys)
 			{
@@ -75,7 +75,7 @@ namespace RoutesHostServer.Services
 					var result = RoutesRepository.TryGetValue(key, out routes);
 					if (result)
 					{
-						var route = routes.SingleOrDefault(i => i.Id == new Guid(routeId));
+						var route = routes.SingleOrDefault(i => i.Id == routeId);
 						if (route != null)
 						{
 							routes.Remove(route);

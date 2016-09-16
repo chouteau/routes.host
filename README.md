@@ -11,7 +11,7 @@ PM> Install-Package RoutesHostClient
 
 ```c#
 
-var route = new RoutesHost.Models.Route();
+var route = new RoutesHostClient.Route();
 route.ApiKey = "{clé}";
 route.ServiceName = "IOrder";
 route.WebApiAddress = "http://localhost:65432/";
@@ -59,6 +59,14 @@ var order = webapiClient.ExecuteRetry<Models.Order>(client =>
 
 #### Configuration globale
 
+Il est possible de configurer le nombre de rééssais et la durée entre chaque
+
+```c#
+var webApiClient = new RoutesHostClient.WebApiClient("{clé}", "IOrder");
+webApiClient.RetryCount = 10;
+webapiClient.RetryIntervalInSecond = 5;
+```
+
 Il est possible de changer le logger par défaut du client, dans ce cas il faut implementer l'interface suivante :
 
 ```c#
@@ -85,15 +93,6 @@ Et engistrer celle-ci dans la configuration du client comme ceci :
 ```c#
 RoutesHostClient.GlobalConfiguration.Configuration.Logger = new MyLogger();
 ```
-
-Il est possible de configurer le nombre de rééssais et la durée entre chaque
-
-```c#
-var webApiClient = new RoutesHostClient.WebApiClient("{clé}", "IOrder");
-webApiClient.RetryCount = 10;
-webapiClient.RetryIntervalInSecond = 5;
-```
-
 
 
 

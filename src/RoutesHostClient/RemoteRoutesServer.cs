@@ -9,15 +9,17 @@ namespace RoutesHostClient
 {
 	internal class RemoteRoutesServer : IRoutesServer
 	{
-		public void Register(Route route)
+		public Guid Register(Route route)
 		{
-			ExecuteRetry<object>((client) =>
+			var result = ExecuteRetry<Guid>((client) =>
 			{
 				return client.PutAsJsonAsync($"api/routes/register", route).Result;
-			}, false);
+			}, true);
+
+			return result;
 		}
 
-		public void UnRegister(string routeId)
+		public void UnRegister(Guid routeId)
 		{
 			ExecuteRetry<object>((client) =>
 			{

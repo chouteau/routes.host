@@ -2,8 +2,8 @@
 {
 	public interface IRoutesServer
 	{
-		void Register(Route route);
+		System.Guid Register(Route route);
 		string Resolve(string apiKey, string serviceName);
-		void UnRegister(string routeId);
+		void UnRegister(System.Guid routeId);
 	}
 }

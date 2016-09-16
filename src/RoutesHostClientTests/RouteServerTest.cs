@@ -14,14 +14,15 @@ namespace RoutesHostClientTests
 		}
 
 
-		public void Register(Route clientRoute)
+		public Guid Register(Route clientRoute)
 		{
 			var serverRoute = new RoutesHostServer.Models.Route();
 			serverRoute.ApiKey = clientRoute.ApiKey;
 			serverRoute.Priority = clientRoute.Priority;
 			serverRoute.ServiceName = clientRoute.ServiceName;
 			serverRoute.WebApiAddress = clientRoute.WebApiAddress;
-			RoutesHostServer.Services.RoutesProvider.Current.Register(serverRoute);
+			var result = RoutesHostServer.Services.RoutesProvider.Current.Register(serverRoute);
+			return result;
 		}
 
 		public string Resolve(string apiKey, string serviceName)
@@ -29,7 +30,7 @@ namespace RoutesHostClientTests
 			return RoutesHostServer.Services.RoutesProvider.Current.Resolve(apiKey, serviceName);
 		}
 
-		public void UnRegister(string routeId)
+		public void UnRegister(Guid routeId)
 		{
 			RoutesHostServer.Services.RoutesProvider.Current.UnRegister(routeId);
 		}

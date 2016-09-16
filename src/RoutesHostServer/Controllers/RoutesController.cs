@@ -19,7 +19,8 @@ namespace RoutesHostServer.Controllers
 		}
 
 		[HttpPut]
-		public string Register(Models.Route route)
+		[HttpPost]
+		public Guid Register(Models.Route route)
 		{
 			if (route == null)
 			{
@@ -35,15 +36,15 @@ namespace RoutesHostServer.Controllers
 			var result = Services.RoutesProvider.Current.Register(route);
 			if (result != Guid.Empty)
 			{
-				return result.ToString();
+				return result;
 			}
-			return null;
+			return Guid.Empty;
 		}
 
 		[HttpDelete]
-		public void UnRegister(string id)
+		public void UnRegister(Guid id)
 		{
-			if (id == null)
+			if (id == null || id == Guid.Empty)
 			{
 				throw new ArgumentNullException();
 			}

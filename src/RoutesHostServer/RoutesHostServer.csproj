@@ -115,6 +115,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\AdminRoutesController.cs" />
+    <Compile Include="Controllers\ApiAuthorizedOperationAttribute.cs" />
     <Compile Include="Controllers\RoutesController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
