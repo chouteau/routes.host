@@ -43,7 +43,7 @@ RoutesHostClient.RoutesProvider.Current.UnRegisterService(apiKey, serviceName);
 
 
 
-## Résolution d'addresse d'un micro service
+## Résolution d'adresse d'un micro service
 
 ```c#
 
@@ -59,7 +59,7 @@ var order = webapiClient.ExecuteRetry<Models.Order>(client =>
 
 #### Configuration globale
 
-Il est possible de configurer le nombre de rééssais et la durée entre chaque
+Configurer le nombre de rééssais et la durée entre chaque
 
 ```c#
 var webApiClient = new RoutesHostClient.WebApiClient("{clé}", "IOrder");

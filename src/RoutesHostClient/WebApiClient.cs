@@ -25,6 +25,10 @@ namespace RoutesHostClient
 		public T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, bool hasReturn = false)
 		{
 			var baseAddress = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
+			if (baseAddress == null)
+			{
+				throw new Exception($"baseAddress not found for needed service {ServiceName} with key {ApiKey}");
+			}
 			var loop = 0;
 			T result = default(T);
 			while (true)
@@ -59,6 +63,10 @@ namespace RoutesHostClient
 				}
 				catch (Exception ex)
 				{
+					Console.WriteLine($"ApiKey {ApiKey}");
+					Console.WriteLine($"serviceName { ServiceName}");
+					ex.Data.Add("apiKey", ApiKey);
+					ex.Data.Add("serviceName", ServiceName);
 					GlobalConfiguration.Configuration.Logger.Error(ex);
 					if (loop > 4)
 					{

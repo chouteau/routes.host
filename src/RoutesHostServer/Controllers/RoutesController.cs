@@ -7,8 +7,10 @@ using System.Web.Http;
 
 namespace RoutesHostServer.Controllers
 {
-    public class RoutesController : ApiController
+	[RoutePrefix("api/routes")]
+	public class RoutesController : ApiController
     {
+		[Route("ping")]
 		[HttpGet]
 		public object Ping()
 		{
@@ -20,6 +22,7 @@ namespace RoutesHostServer.Controllers
 
 		[HttpPut]
 		[HttpPost]
+		[Route("register")]
 		public Guid Register(Models.Route route)
 		{
 			if (route == null)
@@ -42,6 +45,7 @@ namespace RoutesHostServer.Controllers
 		}
 
 		[HttpDelete]
+		[Route("unregister/{id:guid}")]
 		public void UnRegister(Guid id)
 		{
 			if (id == null || id == Guid.Empty)
@@ -52,6 +56,7 @@ namespace RoutesHostServer.Controllers
 		}
 
 		[HttpDelete]
+		[Route("unregisterservice")]
 		public void UnRegisterService(string apiKey, string serviceName)
 		{
 			if (apiKey == null
@@ -63,14 +68,19 @@ namespace RoutesHostServer.Controllers
 		}
 
 		[HttpGet]
-		public string Resolve(string apiKey, string serviceName)
+		[Route("resolve")]
+		public Models.ResolveResult Resolve(string apiKey, string serviceName)
 		{
 			if (apiKey == null
 				|| serviceName == null)
 			{
 				throw new ArgumentNullException();
 			}
-			return Services.RoutesProvider.Current.Resolve(apiKey, serviceName);
+			var result = Services.RoutesProvider.Current.Resolve(apiKey, serviceName);
+			return new Models.ResolveResult()
+			{
+				Address = result
+			};
 		}
 	}
 }

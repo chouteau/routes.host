@@ -48,6 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\RoutesHostServer\Models\ResolveResult.cs">
+      <Link>ResolveResult.cs</Link>
+    </Compile>
     <Compile Include="DiagnosticLogger.cs" />
     <Compile Include="GlobalConfiguration.cs" />
     <Compile Include="ILogger.cs" />

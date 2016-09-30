@@ -9,6 +9,23 @@ namespace RoutesHostClient
 {
 	internal class RemoteRoutesServer : IRoutesServer
 	{
+		private static Lazy<Uri> m_LazyBaseAddress = new Lazy<Uri>(() =>
+		{
+			return new Uri(RoutesHostClient.GlobalConfiguration.Configuration.BaseAddress);
+		}, true);
+
+		public RemoteRoutesServer()
+		{
+		}
+
+		protected Uri BaseAddress
+		{
+			get
+			{
+				return m_LazyBaseAddress.Value;
+			}
+		}
+
 		public Guid Register(Route route)
 		{
 			var result = ExecuteRetry<Guid>((client) =>
@@ -29,12 +46,13 @@ namespace RoutesHostClient
 
 		public string Resolve(string apiKey, string serviceName)
 		{
-			var result = ExecuteRetry<string>((client) =>
+			var result = ExecuteRetry<RoutesHostServer.Models.ResolveResult>((client) =>
 			{
-				return client.GetAsync($"api/routes/resolve/?apiKey={apiKey}&serviceName={serviceName}").Result;
+				var url = $"api/routes/resolve/?apiKey={apiKey}&serviceName={serviceName}";
+				return client.GetAsync(url).Result;
 			}, true);
 
-			return result;
+			return result.Address;
 		}
 
 		public T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, bool hasReturn = false)
@@ -47,7 +65,7 @@ namespace RoutesHostClient
 				{
 					using (var httpClient = new System.Net.Http.HttpClient())
 					{
-						httpClient.BaseAddress = new Uri(GlobalConfiguration.Configuration.BaseAddress);
+						httpClient.BaseAddress = BaseAddress;
 						// httpClient.DefaultRequestHeaders.Add("apiKey", GlobalConfiguration.Configuration.Settings.ApiKey);
 						var response = predicate.Invoke(httpClient);
 						if (!response.IsSuccessStatusCode)

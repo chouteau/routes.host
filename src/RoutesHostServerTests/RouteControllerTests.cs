@@ -55,9 +55,9 @@ namespace RoutesHostServerTests
 			route.WebApiAddress = "http://test.com";
 			controller.Register(route);
 
-			var address = controller.Resolve(route.ApiKey, route.ServiceName);
+			var result = controller.Resolve(route.ApiKey, route.ServiceName);
 
-			Check.That(address).IsEqualTo(route.WebApiAddress);
+			Check.That(result.Address).IsEqualTo(route.WebApiAddress);
 		}
 
 		[TestMethod]
@@ -72,8 +72,8 @@ namespace RoutesHostServerTests
 			controller.Register(route);
 			controller.Register(route);
 
-			var address = controller.Resolve(route.ApiKey, route.ServiceName);
-			Check.That(address).IsEqualTo(route.WebApiAddress);
+			var result = controller.Resolve(route.ApiKey, route.ServiceName);
+			Check.That(result.Address).IsEqualTo(route.WebApiAddress);
 		}
 
 		[TestMethod]
@@ -93,8 +93,8 @@ namespace RoutesHostServerTests
 
 			controller.Register(lessRoute);
 
-			var address = controller.Resolve(route.ApiKey, route.ServiceName);
-			Check.That(address).IsEqualTo(route.WebApiAddress);
+			var result = controller.Resolve(route.ApiKey, route.ServiceName);
+			Check.That(result.Address).IsEqualTo(route.WebApiAddress);
 		}
 
 
@@ -103,8 +103,8 @@ namespace RoutesHostServerTests
 		{
 			var controller = new RoutesHostServer.Controllers.RoutesController();
 
-			var address = controller.Resolve("dummy", "unknown");
-			Check.That(address).IsNull();
+			var result = controller.Resolve("dummy", "unknown");
+			Check.That(result.Address).IsNull();
 		}
 
 
@@ -119,15 +119,15 @@ namespace RoutesHostServerTests
 			route.WebApiAddress = "http://test.com";
 			controller.Register(route);
 
-			var address = controller.Resolve(route.ApiKey, route.ServiceName);
+			var result = controller.Resolve(route.ApiKey, route.ServiceName);
 
-			Check.That(address).IsEqualTo(route.WebApiAddress);
+			Check.That(result.Address).IsEqualTo(route.WebApiAddress);
 
 			controller.UnRegister(route.Id);
 
-			address = controller.Resolve(route.ApiKey, route.ServiceName);
+			result = controller.Resolve(route.ApiKey, route.ServiceName);
 
-			Check.That(address).IsNull();
+			Check.That(result.Address).IsNull();
 		}
 
 		[TestMethod]
@@ -145,15 +145,15 @@ namespace RoutesHostServerTests
 			lessRoute.Priority = 2;
 			controller.Register(lessRoute);
 
-			var address = controller.Resolve(route.ApiKey, route.ServiceName);
+			var result = controller.Resolve(route.ApiKey, route.ServiceName);
 
-			Check.That(address).IsEqualTo(route.WebApiAddress);
+			Check.That(result.Address).IsEqualTo(route.WebApiAddress);
 
 			controller.UnRegister(route.Id);
 
-			address = controller.Resolve(route.ApiKey, route.ServiceName);
+			result = controller.Resolve(route.ApiKey, route.ServiceName);
 
-			Check.That(address).IsNotNull();
+			Check.That(result.Address).IsNotNull();
 		}
 
 		[TestMethod]
@@ -167,15 +167,15 @@ namespace RoutesHostServerTests
 			route.WebApiAddress = "http://test.com";
 			controller.Register(route);
 
-			var address = controller.Resolve(route.ApiKey, route.ServiceName);
+			var result = controller.Resolve(route.ApiKey, route.ServiceName);
 
-			Check.That(address).IsEqualTo(route.WebApiAddress);
+			Check.That(result.Address).IsEqualTo(route.WebApiAddress);
 
 			controller.UnRegisterService(route.ApiKey, route.ServiceName);
 
-			address = controller.Resolve(route.ApiKey, route.ServiceName);
+			result = controller.Resolve(route.ApiKey, route.ServiceName);
 
-			Check.That(address).IsNull();
+			Check.That(result.Address).IsNull();
 		}
 
 	}

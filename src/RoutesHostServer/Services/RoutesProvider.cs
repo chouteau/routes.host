@@ -47,6 +47,10 @@ namespace RoutesHostServer.Services
 							id = item.Id = Guid.NewGuid();
 							routes.Add(item);
 						}
+						else
+						{
+							route.WebApiAddress = item.WebApiAddress;
+						}
 					}
 					return result;
 				});
@@ -124,7 +128,7 @@ namespace RoutesHostServer.Services
 			});
 			if (routes != null)
 			{
-				var item = routes.OrderBy(i => i.Priority).FirstOrDefault();
+				var item = routes.OrderByDescending(i => i.Priority).FirstOrDefault();
 				return item.WebApiAddress;
 			}
 			return null;
