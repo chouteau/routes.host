@@ -45,7 +45,7 @@ namespace RoutesHostServerTests
 		}
 
 		[TestMethod]
-		public void Register_Route()
+		public void Register_Route() 
 		{
 			var controller = new RoutesHostServer.Controllers.RoutesController();
 
@@ -53,7 +53,9 @@ namespace RoutesHostServerTests
 			route.ApiKey = Guid.NewGuid().ToString();
 			route.ServiceName = "Test";
 			route.WebApiAddress = "http://test.com";
-			controller.Register(route);
+			var routeId = controller.Register(route);
+
+			Check.That(routeId).IsNotEqualTo(Guid.Empty);
 
 			var result = controller.Resolve(route.ApiKey, route.ServiceName);
 

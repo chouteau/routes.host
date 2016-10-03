@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
+using Newtonsoft.Json;
+
 namespace RoutesHostServer.Services
 {
 	public class RoutesProvider
@@ -50,6 +52,7 @@ namespace RoutesHostServer.Services
 						else
 						{
 							route.WebApiAddress = item.WebApiAddress;
+							id = item.Id;
 						}
 					}
 					return result;
@@ -132,6 +135,39 @@ namespace RoutesHostServer.Services
 				return item.WebApiAddress;
 			}
 			return null;
+		}
+
+		public void Flush(string repositoryFolder)
+		{
+			foreach (var item in this.RoutesRepository)
+			{
+				foreach (var route in item.Value)
+				{
+					var fileName = System.IO.Path.Combine(repositoryFolder, $"{Guid.NewGuid()}.route.json");
+					var content = Newtonsoft.Json.JsonConvert.SerializeObject(route);
+
+					if (System.IO.File.Exists(fileName))
+					{
+						System.IO.File.Delete(fileName);
+					}
+					System.IO.File.WriteAllText(fileName, content);
+				}
+			}
+			RoutesRepository.Clear();
+		}
+
+		public void Hydrate(string repositoryFolder)
+		{
+			var fileList = from f in System.IO.Directory.GetFiles(repositoryFolder, "*.route.json")
+						   select f;
+
+			foreach (var fileName in fileList)
+			{
+				var content = System.IO.File.ReadAllText(fileName);
+				var item = Newtonsoft.Json.JsonConvert.DeserializeObject<Models.Route>(content);
+
+				Register(item);
+			}
 		}
 
 		private void Retry(Func<ConcurrentDictionary<string, List<Models.Route>>, bool> predicate, int retryCount = 3)

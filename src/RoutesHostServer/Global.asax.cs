@@ -12,6 +12,20 @@ namespace RoutesHostServer
 		protected void Application_Start()
 		{
 			System.Web.Http.GlobalConfiguration.Configure(WebApiConfig.Register);
+			var repositoryFolder = System.Configuration.ConfigurationManager.AppSettings["repositoryFolder"];
+			if (repositoryFolder != null)
+			{
+				Services.RoutesProvider.Current.Hydrate(repositoryFolder);
+			}
+		}
+
+		protected void Application_End()
+		{
+			var repositoryFolder = System.Configuration.ConfigurationManager.AppSettings["repositoryFolder"];
+			if (repositoryFolder != null)
+			{
+				Services.RoutesProvider.Current.Flush(repositoryFolder);
+			}
 		}
 	}
 }
