@@ -12,5 +12,6 @@ namespace RoutesHostClient
 		public string WebApiAddress { get; set; }
 		public string ApiKey { get; set; }
 		public int Priority { get; set; }
+		public string PingPath { get; set; }
 	}
 }

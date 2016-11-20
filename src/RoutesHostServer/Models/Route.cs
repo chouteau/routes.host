@@ -13,6 +13,7 @@ namespace RoutesHostServer.Models
 		public DateTime CreationDate { get; set; }
 		public string ApiKey { get; set; }
 		public int Priority { get; set; }
+		public string PingPath { get; set; }
 
 		public object Clone()
 		{

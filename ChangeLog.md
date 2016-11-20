@@ -1,5 +1,9 @@
 # ChangeLog
 
+## V1.2.7
+- Add PingPath parameter in Route for monitoring
+- RouteHost server is full loadbalancable via Ariane Azure Bus synchronization
+
 ## V1.2.5
 - Add ResolveResult 
 - Improve log when resolve failed

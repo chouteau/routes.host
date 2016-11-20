@@ -44,6 +44,10 @@ namespace RoutesHostClient
 						{
 							if (loop > RetryCount)
 							{
+								if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+								{
+									RoutesProvider.Current.RemoveCache(ApiKey, ServiceName);
+								}
 								break;
 							}
 							loop++;
@@ -63,13 +67,12 @@ namespace RoutesHostClient
 				}
 				catch (Exception ex)
 				{
-					Console.WriteLine($"ApiKey {ApiKey}");
-					Console.WriteLine($"serviceName { ServiceName}");
 					ex.Data.Add("apiKey", ApiKey);
 					ex.Data.Add("serviceName", ServiceName);
 					GlobalConfiguration.Configuration.Logger.Error(ex);
-					if (loop > 4)
+					if (loop > RetryCount)
 					{
+						RoutesProvider.Current.RemoveCache(ApiKey, ServiceName);
 						break;
 					}
 					loop++;

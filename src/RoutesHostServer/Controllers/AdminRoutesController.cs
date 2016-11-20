@@ -24,5 +24,25 @@ namespace RoutesHostServer.Controllers
 			return Services.RoutesProvider.Current.RoutesRepository;
 		}
 
+		[ApiAuthorizedOperation]
+		[Route("pingroutelist")]
+		[HttpGet]
+		public List<string> GetPingUriList()
+		{
+			var list = new List<string>();
+			foreach (var item in Services.RoutesProvider.Current.RoutesRepository)
+			{
+				foreach (var route in item.Value)
+				{
+					var pingUri = $"{route.WebApiAddress}{route.PingPath}";
+					if (!list.Contains(pingUri))
+					{
+						list.Add(pingUri);
+					}
+				}
+			}
+			return list;
+		}
+
 	}
 }

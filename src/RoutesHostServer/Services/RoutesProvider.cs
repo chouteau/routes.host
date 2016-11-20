@@ -16,10 +16,13 @@ namespace RoutesHostServer.Services
 		}, true);
 
 		internal ConcurrentDictionary<string, List<Models.Route>> RoutesRepository { get; private set; }
+		internal ConcurrentBag<string> PingUriList { get; private set; }
+		protected string Sender { get; set; }
 
 		private RoutesProvider()
 		{
 			RoutesRepository = new ConcurrentDictionary<string, List<Models.Route>>();
+			Sender = System.Configuration.ConfigurationManager.AppSettings["TopicName"];
 		}
 		
 		public static RoutesProvider Current
@@ -32,6 +35,13 @@ namespace RoutesHostServer.Services
 
 		public Guid Register(Models.Route item)
 		{
+			var message = new Models.RouteMessage()
+			{
+				Action = "register",
+				Route = item,
+				Sender = Sender
+			};
+			RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
 			var key = $"{item.ApiKey}|{item.ServiceName}".ToLower();
 			var existing = RoutesRepository.ContainsKey(key);
 			Guid id = Guid.Empty;
@@ -74,6 +84,13 @@ namespace RoutesHostServer.Services
 
 		public void UnRegister(Guid routeId)
 		{
+			var message = new Models.RouteMessage()
+			{
+				Action = "unregister",
+				RouteId = routeId,
+				Sender = Sender
+			};
+			RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
 			foreach (var key in RoutesRepository.Keys)
 			{
 				List<Models.Route> routes = null;
@@ -100,6 +117,15 @@ namespace RoutesHostServer.Services
 
 		public void UnRegisterService(string apiKey, string serviceName)
 		{
+			var message = new Models.RouteMessage()
+			{
+				Action = "unregisterservice",
+				ApiKey = apiKey,
+				ServiceName = serviceName,
+				Sender = Sender
+			};
+			RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+
 			var key = $"{apiKey}|{serviceName}".ToLower();
 			var exists = RoutesRepository.ContainsKey(key);
 			if (!exists)

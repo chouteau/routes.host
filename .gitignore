@@ -255,3 +255,4 @@ paket-files/
 # Project
 nuget/
 /localconfig
+/src/RoutesHostServer/localconfig/connectionStrings.config

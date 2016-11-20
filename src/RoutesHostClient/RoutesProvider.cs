@@ -54,13 +54,30 @@ namespace RoutesHostClient
 			}
 
 			var result = RouteServer.Resolve(apiKey, serviceName);
-
 			if (result != null)
 			{
-				m_Cache.Add(key, result);
+				if (!m_Cache.ContainsKey(key))
+				{
+					m_Cache.Add(key, result);
+				}
 			}
 
 			return result;
+		}
+
+		internal void RemoveCache(string apiKey, string serviceName)
+		{
+			var key = $"{apiKey}|{serviceName}";
+			if (!m_Cache.ContainsKey(key))
+			{
+				return;
+			}
+			m_Cache.Remove(key);
+		}
+
+		public void RegisterPing(string uri)
+		{
+
 		}
 	}
 }
