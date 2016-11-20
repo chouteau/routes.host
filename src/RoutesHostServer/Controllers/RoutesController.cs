@@ -37,11 +37,7 @@ namespace RoutesHostServer.Controllers
 			}
 			var uri = new Uri(route.WebApiAddress);
 			var result = Services.RoutesProvider.Current.Register(route);
-			if (result != Guid.Empty)
-			{
-				return result;
-			}
-			return Guid.Empty;
+			return result;
 		}
 
 		[HttpDelete]

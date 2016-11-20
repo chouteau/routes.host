@@ -28,12 +28,13 @@ namespace RoutesHostClient
 
 		public Guid Register(Route route)
 		{
-			var result = ExecuteRetry<Guid>((client) =>
+			var result = ExecuteRetry<string>((client) =>
 			{
-				return client.PutAsJsonAsync($"api/routes/register", route).Result;
+				var routeId = client.PutAsJsonAsync($"api/routes/register", route).Result;
+				return routeId;
 			}, true);
 
-			return result;
+			return new Guid(result);
 		}
 
 		public void UnRegister(Guid routeId)

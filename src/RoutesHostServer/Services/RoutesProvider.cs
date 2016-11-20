@@ -53,7 +53,8 @@ namespace RoutesHostServer.Services
 					var result = RoutesRepository.TryGetValue(key, out routes);
 					if (result)
 					{
-						var route = routes.SingleOrDefault(i => $"{i.ApiKey}|{i.ServiceName}".Equals(key, StringComparison.InvariantCultureIgnoreCase) && i.Priority == item.Priority);
+						var route = routes.SingleOrDefault(i => $"{i.ApiKey}|{i.ServiceName}".Equals(key, StringComparison.InvariantCultureIgnoreCase) 
+												&& i.Priority == item.Priority);
 						if (route == null)
 						{
 							id = item.Id = Guid.NewGuid();
@@ -62,7 +63,8 @@ namespace RoutesHostServer.Services
 						else
 						{
 							route.WebApiAddress = item.WebApiAddress;
-							id = item.Id;
+							route.PingPath = item.PingPath;
+							id = route.Id;
 						}
 					}
 					return result;
@@ -165,6 +167,9 @@ namespace RoutesHostServer.Services
 
 		public void Flush(string repositoryFolder)
 		{
+			var fileList = (from f in System.IO.Directory.GetFiles(repositoryFolder, "*.route.json")
+						   select f).ToList();
+
 			foreach (var item in this.RoutesRepository)
 			{
 				foreach (var route in item.Value)
@@ -177,9 +182,15 @@ namespace RoutesHostServer.Services
 						System.IO.File.Delete(fileName);
 					}
 					System.IO.File.WriteAllText(fileName, content);
+					fileList.Remove(fileName);
 				}
 			}
 			RoutesRepository.Clear();
+
+			foreach (var item in fileList)
+			{
+				System.IO.File.Delete(item);
+			}
 		}
 
 		public void Hydrate(string repositoryFolder)

@@ -21,6 +21,7 @@ namespace RoutesHostClientTests
 			serverRoute.Priority = clientRoute.Priority;
 			serverRoute.ServiceName = clientRoute.ServiceName;
 			serverRoute.WebApiAddress = clientRoute.WebApiAddress;
+			serverRoute.PingPath = clientRoute.PingPath;
 			var result = RoutesHostServer.Services.RoutesProvider.Current.Register(serverRoute);
 			return result;
 		}
