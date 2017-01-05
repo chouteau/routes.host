@@ -1,5 +1,8 @@
 # ChangeLog
 
+## 1.3.9
+- Add TestMode for external unittests without registration
+
 ## V1.2.7
 - Add PingPath parameter in Route for monitoring
 - RouteHost server is full loadbalancable via Ariane Azure Bus synchronization

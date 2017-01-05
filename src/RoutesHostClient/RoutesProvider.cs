@@ -20,6 +20,7 @@ namespace RoutesHostClient
 		{
 			m_Cache = new Dictionary<string, string>();
 			RouteServer = GlobalConfiguration.Configuration.RouteServer;
+			TestMode = false;
 		}
 
 		protected IRoutesServer RouteServer { get; private set; }
@@ -32,8 +33,14 @@ namespace RoutesHostClient
 			}
 		}
 
+		public bool TestMode { get; set; }
+
 		public Guid Register(Route route)
 		{
+			if (TestMode)
+			{
+				return Guid.NewGuid();
+			}
 			var result = RouteServer.Register(route);
 			GlobalConfiguration.Configuration.Logger.Info($"Route for service {route.ServiceName} registered with address {route.WebApiAddress}");
 			return result;
@@ -41,12 +48,20 @@ namespace RoutesHostClient
 
 		public void UnRegister(Guid routeId)
 		{
+			if (TestMode)
+			{
+				return;
+			}
 			RouteServer.UnRegister(routeId);
 			GlobalConfiguration.Configuration.Logger.Info($"Route for service {routeId} was unregistered");
 		}
 
 		public string Resolve(string apiKey, string serviceName)
 		{
+			if (TestMode)
+			{
+				return null;
+			}
 			var key = $"{apiKey}|{serviceName}";
 			if (m_Cache.ContainsKey(key))
 			{
