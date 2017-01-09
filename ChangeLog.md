@@ -1,6 +1,8 @@
 # ChangeLog
 
-## 1.3.9
+- Add Admin page for server
+
+## V1.3.9
 - Add TestMode for external unittests without registration
 
 ## V1.2.7

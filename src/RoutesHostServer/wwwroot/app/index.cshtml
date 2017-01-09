@@ -1,0 +1,25 @@
+﻿@inherits System.Web.Mvc.WebViewPage
+<!DOCTYPE html>
+<html ng-app="routesHost">
+<head>
+	<base href="/">
+    <title>RoutesHost</title>
+	<meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="~/wwwroot/lib/angular-material/angular-material.css">
+</head>
+<body>
+	
+	<div id="main" ui-view="main" layout="column"></div>
+
+    <script src="/wwwroot/lib/angular/angular.min.js"></script>
+    <script src="/wwwroot/lib/angular-messages/angular-messages.min.js"></script>
+    <script src="/wwwroot/lib/angular-aria/angular-aria.min.js"></script>
+    <script src="/wwwroot/lib/angular-animate/angular-animate.min.js"></script>
+    <script src="/wwwroot/lib/angular-material/angular-material.min.js"></script>
+    <script src="/wwwroot/lib/angular-resource/angular-resource.min.js"></script>
+    <script src="/wwwroot/lib/angular-cookies/angular-cookies.min.js"></script>
+    <script src="/wwwroot/lib/angular-ui-router/release/angular-ui-router.js"></script>
+	<script src="/wwwroot/app/index.js"></script>
+</body>
+</html>

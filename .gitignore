@@ -256,3 +256,4 @@ paket-files/
 nuget/
 /localconfig
 /src/RoutesHostServer/localconfig/connectionStrings.config
+/src/RoutesHostServer/wwwroot/lib

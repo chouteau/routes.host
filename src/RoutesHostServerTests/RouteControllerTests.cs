@@ -11,7 +11,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Add_Null_Route()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var isNull = false;
 			try
@@ -29,7 +29,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Add_Invalid_Route()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var isInvalid = false;
 			try
@@ -47,7 +47,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Register_Route() 
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
@@ -65,7 +65,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Register_Existing_Route_With_Same_Priority()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
@@ -81,7 +81,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Register_Existing_Route_With_Less_Priority()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
@@ -103,7 +103,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Resolve_Unknown_Route()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var result = controller.Resolve("dummy", "unknown");
 			Check.That(result.Address).IsNull();
@@ -113,7 +113,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Unregister_Route()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
@@ -135,7 +135,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Add_Routes_With_Priorities_And_Unregister_First()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();
@@ -161,7 +161,7 @@ namespace RoutesHostServerTests
 		[TestMethod]
 		public void Unregister_Service()
 		{
-			var controller = new RoutesHostServer.Controllers.RoutesController();
+			var controller = new RoutesHostServer.Controllers.RoutesApiController();
 
 			var route = new RoutesHostServer.Models.Route();
 			route.ApiKey = Guid.NewGuid().ToString();

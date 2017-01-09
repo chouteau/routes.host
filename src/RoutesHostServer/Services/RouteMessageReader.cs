@@ -30,13 +30,13 @@ namespace RoutesHostServer.Services
 			switch (message.Action?.ToLower())
 			{
 				case "register":
-					RoutesProvider.Current.Register(message.Route);
+					RoutesProvider.Current.Register(message.Route, true);
 					break;
 				case "unregister":
-					RoutesProvider.Current.UnRegister(message.RouteId);
+					RoutesProvider.Current.UnRegister(message.RouteId, true);
 					break;
 				case "unregisterservice":
-					RoutesProvider.Current.UnRegisterService(message.ApiKey, message.ServiceName);
+					RoutesProvider.Current.UnRegisterService(message.ApiKey, message.ServiceName, true);
 					break;
 				default:
 					break;

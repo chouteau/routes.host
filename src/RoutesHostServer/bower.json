@@ -1,0 +1,13 @@
+{
+	"name": "routesHostApp",
+	"private": true,
+	"dependencies": {
+		"angular": "1.6.1",
+		"angular-resource": "1.6.1",
+		"angular-messages": "1.6.1",
+		"angular-material": "1.1.1",
+		"angular-aria": "1.6.1",
+			"angular-ui-router": "0.3.2",
+			"angular-cookies": "1.6.1"
+	}
+}

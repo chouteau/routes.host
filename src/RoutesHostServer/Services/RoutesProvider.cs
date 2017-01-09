@@ -33,7 +33,7 @@ namespace RoutesHostServer.Services
 			}
 		}
 
-		public Guid Register(Models.Route item)
+		public Guid Register(Models.Route item, bool fromTopic = false)
 		{
 			var message = new Models.RouteMessage()
 			{
@@ -41,7 +41,10 @@ namespace RoutesHostServer.Services
 				Route = item,
 				Sender = Sender
 			};
-			RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+			if (!fromTopic)
+			{
+				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+			}
 			var key = $"{item.ApiKey}|{item.ServiceName}".ToLower();
 			var existing = RoutesRepository.ContainsKey(key);
 			Guid id = Guid.Empty;
@@ -84,7 +87,7 @@ namespace RoutesHostServer.Services
 			return id;
 		}
 
-		public void UnRegister(Guid routeId)
+		public void UnRegister(Guid routeId, bool fromTopic = false)
 		{
 			var message = new Models.RouteMessage()
 			{
@@ -92,7 +95,10 @@ namespace RoutesHostServer.Services
 				RouteId = routeId,
 				Sender = Sender
 			};
-			RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+			if (!fromTopic)
+			{
+				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+			}
 			foreach (var key in RoutesRepository.Keys)
 			{
 				List<Models.Route> routes = null;
@@ -117,7 +123,7 @@ namespace RoutesHostServer.Services
 			}
 		}
 
-		public void UnRegisterService(string apiKey, string serviceName)
+		public void UnRegisterService(string apiKey, string serviceName, bool fromTopic = false)
 		{
 			var message = new Models.RouteMessage()
 			{
@@ -126,7 +132,11 @@ namespace RoutesHostServer.Services
 				ServiceName = serviceName,
 				Sender = Sender
 			};
-			RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+
+			if (!fromTopic)
+			{
+				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+			}
 
 			var key = $"{apiKey}|{serviceName}".ToLower();
 			var exists = RoutesRepository.ContainsKey(key);

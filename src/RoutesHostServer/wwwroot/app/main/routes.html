@@ -1,0 +1,14 @@
+﻿Filter : <input type="text" ng-model="vm.search" /><input type="submit" value="Search"/>
+
+<ul>
+	<li ng-repeat="service in vm.routes">
+		<strong>{{service.key}}</strong><br/>
+		<button ng-click="vm.deleteService(service)">Delete Service</button>
+		<ul>
+			<li ng-repeat="route in service.value">
+				<button ng-click="vm.deleteRoute(service,route)">Delete Route</button>
+				<pre>{{route|json}}</pre>
+			</li>
+		</ul>
+	</li>
+</ul>

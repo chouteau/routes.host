@@ -8,7 +8,7 @@ using System.Web.Http;
 namespace RoutesHostServer.Controllers
 {
 	[RoutePrefix("api/routes")]
-	public class RoutesController : ApiController
+	public class RoutesApiController : ApiController
     {
 		[Route("ping")]
 		[HttpGet]

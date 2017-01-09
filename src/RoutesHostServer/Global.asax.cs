@@ -25,6 +25,9 @@ namespace RoutesHostServer
 			{
 				Services.RoutesProvider.Current.Hydrate(repositoryFolder);
 			}
+
+			RouteConfig.RegisterRoutes(RouteTable.Routes);
+			ViewEngines.Engines.Add(new AppViewEngine());
 		}
 
 		protected void Application_End()

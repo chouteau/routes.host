@@ -1,0 +1,25 @@
+﻿<div id="login" layout="column">
+    <div layout="column" layout-align="center center">
+        <div id="login-form" class="md-whiteframe-8dp">
+
+            <div class="title">Login</div>
+
+            <form name="loginForm" novalidate>
+                <md-input-container class="md-block" md-no-float>
+                    <input type="text" name="apiKey" ng-model="vm.form.apiKey" placeholder="Key" required>
+                    <div ng-messages="loginForm.apiKey.$error" ng-show="loginForm.apiKey.$touched" role="alert" multiple>
+                        <div ng-message="required">
+                            <span>Key required</span>
+                        </div>
+                    </div>
+                </md-input-container>
+
+                <md-button type="submit" class="md-raised md-accent" aria-label="Access"
+                           ng-disabled="loginForm.$invalid || loginForm.$pristine" ng-click="vm.authenticate()" >
+                    Access
+                </md-button>
+            </form>
+
+        </div>
+    </div>
+</div>
