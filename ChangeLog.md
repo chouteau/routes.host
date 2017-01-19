@@ -1,9 +1,17 @@
 # ChangeLog 
 
-- Add Admin page for server
+## V1.3.10 (Client)
+
+- Add MachineName property for route
+- Replace TestMode by ResolvedTestUrl
+
+## V2.2 (Server)
+
+- Add MachineName and IP for RouteServer
 
 ## V1.3.9
 - Add TestMode for external unittests without registration
+- Add Admin page for server
 
 ## V1.2.7
 - Add PingPath parameter in Route for monitoring

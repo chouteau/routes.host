@@ -22,6 +22,7 @@ namespace RoutesHostClientTests
 			serverRoute.ServiceName = clientRoute.ServiceName;
 			serverRoute.WebApiAddress = clientRoute.WebApiAddress;
 			serverRoute.PingPath = clientRoute.PingPath;
+			serverRoute.MachineName = clientRoute.MachineName;
 			var result = RoutesHostServer.Services.RoutesProvider.Current.Register(serverRoute);
 			return result;
 		}

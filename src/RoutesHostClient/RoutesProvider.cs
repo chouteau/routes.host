@@ -20,7 +20,6 @@ namespace RoutesHostClient
 		{
 			m_Cache = new Dictionary<string, string>();
 			RouteServer = GlobalConfiguration.Configuration.RouteServer;
-			TestMode = false;
 		}
 
 		protected IRoutesServer RouteServer { get; private set; }
@@ -33,14 +32,15 @@ namespace RoutesHostClient
 			}
 		}
 
-		public bool TestMode { get; set; }
+		public string ResolevedTestUrl { get; set; }
 
 		public Guid Register(Route route)
 		{
-			if (TestMode)
+			if (ResolevedTestUrl == null)
 			{
 				return Guid.NewGuid();
 			}
+			route.MachineName = route.MachineName ?? System.Environment.MachineName;
 			var result = RouteServer.Register(route);
 			GlobalConfiguration.Configuration.Logger.Info($"Route for service {route.ServiceName} registered with address {route.WebApiAddress}");
 			return result;
@@ -48,7 +48,7 @@ namespace RoutesHostClient
 
 		public void UnRegister(Guid routeId)
 		{
-			if (TestMode)
+			if (ResolevedTestUrl == null)
 			{
 				return;
 			}
@@ -58,9 +58,9 @@ namespace RoutesHostClient
 
 		public string Resolve(string apiKey, string serviceName)
 		{
-			if (TestMode)
+			if (ResolevedTestUrl == null)
 			{
-				return null;
+				return ResolevedTestUrl;
 			}
 			var key = $"{apiKey}|{serviceName}";
 			if (m_Cache.ContainsKey(key))
@@ -88,11 +88,6 @@ namespace RoutesHostClient
 				return;
 			}
 			m_Cache.Remove(key);
-		}
-
-		public void RegisterPing(string uri)
-		{
-
 		}
 	}
 }

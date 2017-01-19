@@ -15,12 +15,14 @@ namespace RoutesHostClient
 			RetryIntervalInSecond = 5;
 			ApiKey = apiKey;
 			ServiceName = serviceName;
+			RequestHeaders = new System.Collections.Specialized.NameValueCollection();
 		}
 
 		public string ApiKey { get; set; }
 		public string ServiceName { get; set; }
 		public int RetryCount { get; private set; }
 		public int RetryIntervalInSecond { get; private set; }
+		public System.Collections.Specialized.NameValueCollection RequestHeaders { get; set; }
 
 		public T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, bool hasReturn = false)
 		{
@@ -38,6 +40,11 @@ namespace RoutesHostClient
 					using (var httpClient = new System.Net.Http.HttpClient())
 					{
 						httpClient.BaseAddress = new Uri(baseAddress);
+						foreach (var headerName in RequestHeaders.AllKeys)
+						{
+							httpClient.DefaultRequestHeaders.Add(headerName, RequestHeaders[headerName]);
+						}
+
 						// httpClient.DefaultRequestHeaders.Add("apiKey", GlobalConfiguration.Configuration.Settings.ApiKey);
 						var response = predicate.Invoke(httpClient);
 						if (!response.IsSuccessStatusCode)

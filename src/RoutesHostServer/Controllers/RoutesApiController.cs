@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.ServiceModel.Channels;
+using System.Web;
 using System.Web.Http;
 
 namespace RoutesHostServer.Controllers
@@ -35,6 +37,7 @@ namespace RoutesHostServer.Controllers
 			{
 				throw new ArgumentException("route is not valid");
 			}
+			route.Ip = GetClientIpAddress();
 			var uri = new Uri(route.WebApiAddress);
 			var result = Services.RoutesProvider.Current.Register(route);
 			return result;
@@ -78,5 +81,44 @@ namespace RoutesHostServer.Controllers
 				Address = result
 			};
 		}
+
+		public HttpRequestBase GetRequestBase()
+		{
+			if (Request == null
+				|| Request.Properties == null)
+			{
+				return null;
+			}
+
+			if (Request.Properties.ContainsKey("MS_HttpContext"))
+			{
+				return ((HttpContextWrapper)Request.Properties["MS_HttpContext"]).Request;
+			}
+			return null;
+		}
+
+		public string GetClientIpAddress()
+		{
+			var requestBase = GetRequestBase();
+			if (requestBase != null)
+			{
+				return requestBase.UserHostAddress;
+			}
+			else if (Request == null)
+			{
+				return null;
+			}
+			else if (Request.Properties.ContainsKey(RemoteEndpointMessageProperty.Name))
+			{
+				RemoteEndpointMessageProperty prop;
+				prop = (RemoteEndpointMessageProperty)Request.Properties[RemoteEndpointMessageProperty.Name];
+				return prop.Address;
+			}
+			else
+			{
+				return null;
+			}
+		}
+
 	}
 }
