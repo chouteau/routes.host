@@ -32,11 +32,11 @@ namespace RoutesHostClient
 			}
 		}
 
-		public string ResolevedTestUrl { get; set; }
+		public string ResolvedTestUrl { get; set; }
 
 		public Guid Register(Route route)
 		{
-			if (ResolevedTestUrl != null)
+			if (ResolvedTestUrl != null)
 			{
 				return Guid.NewGuid();
 			}
@@ -48,7 +48,7 @@ namespace RoutesHostClient
 
 		public void UnRegister(Guid routeId)
 		{
-			if (ResolevedTestUrl != null)
+			if (ResolvedTestUrl != null)
 			{
 				return;
 			}
@@ -58,9 +58,9 @@ namespace RoutesHostClient
 
 		public string Resolve(string apiKey, string serviceName)
 		{
-			if (ResolevedTestUrl != null)
+			if (ResolvedTestUrl != null)
 			{
-				return ResolevedTestUrl;
+				return ResolvedTestUrl;
 			}
 			var key = $"{apiKey}|{serviceName}";
 			if (m_Cache.ContainsKey(key))
