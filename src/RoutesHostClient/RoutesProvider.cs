@@ -36,7 +36,7 @@ namespace RoutesHostClient
 
 		public Guid Register(Route route)
 		{
-			if (ResolevedTestUrl == null)
+			if (ResolevedTestUrl != null)
 			{
 				return Guid.NewGuid();
 			}
@@ -48,7 +48,7 @@ namespace RoutesHostClient
 
 		public void UnRegister(Guid routeId)
 		{
-			if (ResolevedTestUrl == null)
+			if (ResolevedTestUrl != null)
 			{
 				return;
 			}
@@ -58,7 +58,7 @@ namespace RoutesHostClient
 
 		public string Resolve(string apiKey, string serviceName)
 		{
-			if (ResolevedTestUrl == null)
+			if (ResolevedTestUrl != null)
 			{
 				return ResolevedTestUrl;
 			}
