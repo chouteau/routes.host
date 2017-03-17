@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,10 +10,10 @@ namespace RoutesHostClient
 {
 	public class WebApiClient
 	{
-		public WebApiClient(string apiKey, string serviceName)
+		public WebApiClient(string apiKey, string serviceName, int retryCount = 4, int intervalInSecond = 5)
 		{
-			RetryCount = 4;
-			RetryIntervalInSecond = 5;
+			RetryCount = retryCount;
+			RetryIntervalInSecond = intervalInSecond;
 			ApiKey = apiKey;
 			ServiceName = serviceName;
 			RequestHeaders = new System.Collections.Specialized.NameValueCollection();
@@ -29,7 +30,7 @@ namespace RoutesHostClient
 			var baseAddress = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
 			if (baseAddress == null)
 			{
-				throw new Exception($"baseAddress not found for needed service {ServiceName} with key {ApiKey}");
+				throw new Exception($"baseAddress not found for needed service {ServiceName} with key {ApiKey.Substring(0,5)}...{ApiKey.Substring(ApiKey.Length-5)}");
 			}
 			var loop = 0;
 			T result = default(T);
@@ -37,7 +38,14 @@ namespace RoutesHostClient
 			{
 				try
 				{
-					using (var httpClient = new System.Net.Http.HttpClient())
+					var handler = new HttpClientHandler()
+					{
+						AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
+						AllowAutoRedirect = false,
+						UseCookies = true,
+					};
+
+					using (var httpClient = new System.Net.Http.HttpClient(handler))
 					{
 						httpClient.BaseAddress = new Uri(baseAddress);
 						foreach (var headerName in RequestHeaders.AllKeys)
@@ -45,7 +53,6 @@ namespace RoutesHostClient
 							httpClient.DefaultRequestHeaders.Add(headerName, RequestHeaders[headerName]);
 						}
 
-						// httpClient.DefaultRequestHeaders.Add("apiKey", GlobalConfiguration.Configuration.Settings.ApiKey);
 						var response = predicate.Invoke(httpClient);
 						if (!response.IsSuccessStatusCode)
 						{

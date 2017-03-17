@@ -11,12 +11,11 @@ namespace RoutesHostClient
 		private static Lazy<RoutesHostConfiguration> m_Configuration
 		= new Lazy<RoutesHostConfiguration>(() =>
 		{
-			return new RoutesHostConfiguration()
+			var result = new RoutesHostConfiguration()
 			{
-				BaseAddress = "http://routes.host",
-				Logger = new DiagnosticsLogger(),
-				RouteServer = new RemoteRoutesServer()
+				Logger = new DiagnosticsLogger()
 			};
+			return result;
 		}, true);
 
 		public static RoutesHostConfiguration Configuration

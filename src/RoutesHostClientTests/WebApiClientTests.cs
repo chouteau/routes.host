@@ -11,33 +11,36 @@ namespace RoutesHostClientTests
 		[TestMethod]
 		public void Register_And_Resolve()
 		{
-			RoutesHostClient.GlobalConfiguration.Configuration.RouteServer = new RouteServerTest();
+			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress("http://routes.host");
 
 			var route = new RoutesHostClient.Route();
 			route.ApiKey = "test";
 			route.ServiceName = "myservice";
 			route.WebApiAddress = "http://localhost:1234";
 
-			RoutesHostClient.RoutesProvider.Current.Register(route);
+			var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
 
 			var address = RoutesHostClient.RoutesProvider.Current.Resolve(route.ApiKey, route.ServiceName);
 
 			Check.That(address).IsEqualTo(route.WebApiAddress);
+
+			RoutesHostClient.RoutesProvider.Current.UnRegister(routeId);
 		}
 
 		[TestMethod]
 		public void Call_Service()
 		{
+			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress("http://routes.host");
+
 			MiniServer.Start();
-			RoutesHostClient.GlobalConfiguration.Configuration.RouteServer = new RouteServerTest();
+			var routeServer = new RouteServerTest();
 			
 			var route = new RoutesHostClient.Route();
 			route.ApiKey = "test";
 			route.ServiceName = "ping";
 			route.WebApiAddress = "http://localhost:65432/";
 
-			RoutesHostClient.RoutesProvider.Current.Register(route);
-
+			var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
 			var webapiClient = new RoutesHostClient.WebApiClient("test", "ping");
 
 			var content = webapiClient.ExecuteRetry<object>(client =>
@@ -48,6 +51,8 @@ namespace RoutesHostClientTests
 
 			Check.That(content).IsNotNull();
 			MiniServer.Stop();
+
+			RoutesHostClient.RoutesProvider.Current.UnRegister(routeId);
 		}
 	}
 }

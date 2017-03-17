@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RoutesHostClientTests
 {
-	public class RouteServerTest : RoutesHostClient.IRoutesServer
+	public class RouteServerTest 
 	{
 		public RouteServerTest()
 		{

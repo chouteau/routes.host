@@ -1,4 +1,4 @@
-# Routes.Host (1.2.7)
+# Routes.Host (1.4.14.1)
 
 Route provider for micro-services
 
@@ -12,7 +12,7 @@ PM> Install-Package RoutesHostClient
 ```c#
 
 var route = new RoutesHostClient.Route();
-route.ApiKey = "{clé}";
+route.ApiKey = "{key}";
 route.ServiceName = "IOrder";
 route.WebApiAddress = "http://localhost:65432/";
 route.Priority = 1;
@@ -58,6 +58,12 @@ var order = webapiClient.ExecuteRetry<Models.Order>(client =>
 ```
 
 #### Configuration globale
+
+Configurer le serveur de route **(obligatoire)**
+
+```c#
+RoutesHostClient.GlobalConfiguration.Configuration.AddAddress("http://routes.host");
+```
 
 Configurer le nombre de rééssais et la durée entre chaque
 

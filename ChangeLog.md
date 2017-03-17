@@ -1,5 +1,10 @@
 # ChangeLog 
 
+## 1.4.14.1 (Client)
+
+- Allow gzip with webapi 
+- Spare mode for server route
+
 ## V1.3.10 (Client)
 
 - Add MachineName property for route

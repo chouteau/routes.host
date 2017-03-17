@@ -19,10 +19,8 @@ namespace RoutesHostClient
 		private RoutesProvider()
 		{
 			m_Cache = new Dictionary<string, string>();
-			RouteServer = GlobalConfiguration.Configuration.RouteServer;
+			RouteServerList = new List<RouteServer>();
 		}
-
-		protected IRoutesServer RouteServer { get; private set; }
 
 		public static RoutesProvider Current
 		{
@@ -33,6 +31,7 @@ namespace RoutesHostClient
 		}
 
 		public string ResolvedTestUrl { get; set; }
+		internal List<RouteServer> RouteServerList { get; set; }
 
 		public Guid Register(Route route)
 		{
@@ -41,9 +40,15 @@ namespace RoutesHostClient
 				return Guid.NewGuid();
 			}
 			route.MachineName = route.MachineName ?? System.Environment.MachineName;
-			var result = RouteServer.Register(route);
+
+			var result = ExecuteRetry<string>((client) =>
+			{
+				var routeId = client.PutAsJsonAsync($"api/routes/register", route).Result;
+				return routeId;
+			}, true);
+
 			GlobalConfiguration.Configuration.Logger.Info($"Route for service {route.ServiceName} registered with address {route.WebApiAddress}");
-			return result;
+			return new Guid(result);
 		}
 
 		public void UnRegister(Guid routeId)
@@ -52,7 +57,11 @@ namespace RoutesHostClient
 			{
 				return;
 			}
-			RouteServer.UnRegister(routeId);
+			ExecuteRetry<object>((client) =>
+			{
+				return client.DeleteAsync($"api/routes/unregister/{routeId}").Result;
+			}, false);
+
 			GlobalConfiguration.Configuration.Logger.Info($"Route for service {routeId} was unregistered");
 		}
 
@@ -68,16 +77,21 @@ namespace RoutesHostClient
 				return m_Cache[key];
 			}
 
-			var result = RouteServer.Resolve(apiKey, serviceName);
+			var result = ExecuteRetry<RoutesHostServer.Models.ResolveResult>((client) =>
+			{
+				var url = $"api/routes/resolve/?apiKey={apiKey}&serviceName={serviceName}";
+				return client.GetAsync(url).Result;
+			}, true);
+
 			if (result != null)
 			{
 				if (!m_Cache.ContainsKey(key))
 				{
-					m_Cache.Add(key, result);
+					m_Cache.Add(key, result.Address);
 				}
 			}
 
-			return result;
+			return result.Address;
 		}
 
 		internal void RemoveCache(string apiKey, string serviceName)
@@ -89,5 +103,111 @@ namespace RoutesHostClient
 			}
 			m_Cache.Remove(key);
 		}
+
+		internal void AddBaseAddress(string baseAddress)
+		{
+			if (string.IsNullOrWhiteSpace(baseAddress))
+			{
+				throw new ArgumentNullException();
+			}
+			if (RouteServerList.Any(i => i.BaseAdresse.Equals(baseAddress, StringComparison.InvariantCultureIgnoreCase)))
+			{
+				return;	
+			}
+			RouteServerList.Add(new RouteServer()
+			{
+				BaseAdresse = baseAddress,
+			});
+		}
+
+		internal void ResetBaseAddressList()
+		{
+			RouteServerList.Clear();
+		}
+
+		private RouteServer GetAvailableRouteServer()
+		{
+			var result = RouteServerList
+							.OrderByDescending(i => i.UseCount)
+							.FirstOrDefault(i => !i.IsAvailable.HasValue 
+							|| i.IsAvailable.Value 
+							|| i.ReleaseDate <= DateTime.Now);
+
+			return result;
+		}
+
+		private T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, bool hasReturn = false)
+		{
+			var loop = 0;
+			T result = default(T);
+			while (true)
+			{
+				using (var httpClient = new System.Net.Http.HttpClient())
+				{
+					var routeServer = GetAvailableRouteServer();
+					if (routeServer == null)
+					{
+						GlobalConfiguration.Configuration.Logger.Error("internet access unavailable");
+						return default(T);
+					}
+					httpClient.BaseAddress = new Uri(routeServer.BaseAdresse);
+
+					HttpResponseMessage response = null;
+					try
+					{
+						response = predicate.Invoke(httpClient);
+						response.EnsureSuccessStatusCode();
+					}
+					catch(Exception ex)
+					{
+						var x = ex;
+						while(true)
+						{
+							if (x.InnerException == null)
+							{
+								GlobalConfiguration.Configuration.Logger.Error(x.Message);
+								if (x is System.Net.WebException)
+								{
+									var webex = x as System.Net.WebException;
+									if (webex.Status == System.Net.WebExceptionStatus.NameResolutionFailure)
+									{
+										loop = 4;
+									}
+								}
+								break;
+							}
+							x = x.InnerException;
+						}
+					}
+					
+					if (response == null)
+					{
+						if (loop > 3)
+						{
+							routeServer.IsAvailable = false;
+							routeServer.ReleaseDate = DateTime.Now.AddMinutes(5);
+							routeServer.FailAccessCount++;
+							loop = -1;
+							GlobalConfiguration.Configuration.Logger.Warn($"routehost : server route {routeServer.BaseAdresse} is down");
+						}
+						loop++;
+					}
+					else
+					{
+						if (hasReturn)
+						{
+							result = response.Content.ReadAsAsync<T>().Result;
+						}
+						routeServer.IsAvailable = true;
+						routeServer.LastAccessDate = DateTime.Now;
+						routeServer.UseCount++;
+						break;
+					}
+				}
+				System.Threading.Thread.Sleep(4 * 1000);
+			}
+			return result;
+		}
+
 	}
 }
