@@ -14,11 +14,11 @@ namespace RoutesHostClient
 			return new RoutesProvider();
 		}, true);
 
-		private Dictionary<string, string> m_Cache;
+		private System.Collections.Concurrent.ConcurrentDictionary<string, string> m_Cache;
 
 		private RoutesProvider()
 		{
-			m_Cache = new Dictionary<string, string>();
+			m_Cache = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
 			RouteServerList = new List<RouteServer>();
 		}
 
@@ -87,7 +87,7 @@ namespace RoutesHostClient
 			{
 				if (!m_Cache.ContainsKey(key))
 				{
-					m_Cache.Add(key, result.Address);
+					m_Cache.TryAdd(key, result.Address);
 				}
 			}
 
@@ -101,7 +101,7 @@ namespace RoutesHostClient
 			{
 				return;
 			}
-			m_Cache.Remove(key);
+			m_Cache.TryRemove(key, out serviceName);
 		}
 
 		internal void AddBaseAddress(string baseAddress)
@@ -157,6 +157,10 @@ namespace RoutesHostClient
 					{
 						response = predicate.Invoke(httpClient);
 						response.EnsureSuccessStatusCode();
+					}
+					catch(HttpRequestException hex) when (hex.Message.LastIndexOf("404") != -1)
+					{
+						loop = 4;
 					}
 					catch(Exception ex)
 					{
