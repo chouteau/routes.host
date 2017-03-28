@@ -13,7 +13,8 @@ namespace RoutesHostClient
 		{
 			var result = new RoutesHostConfiguration()
 			{
-				Logger = new DiagnosticsLogger()
+				Logger = new DiagnosticsLogger(),
+				UseProxy = false
 			};
 			return result;
 		}, true);

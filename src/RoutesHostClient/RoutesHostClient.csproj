@@ -54,6 +54,7 @@
     <Compile Include="DiagnosticLogger.cs" />
     <Compile Include="GlobalConfiguration.cs" />
     <Compile Include="ILogger.cs" />
+    <Compile Include="ProxyRoute.cs" />
     <Compile Include="Route.cs" />
     <Compile Include="RouteServer.cs" />
     <Compile Include="RoutesHostConfiguration.cs" />

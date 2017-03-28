@@ -28,6 +28,33 @@ namespace RoutesHostClientTests
 		}
 
 		[TestMethod]
+		public void Register_Proxy_Resolve()
+		{
+			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress("http://route2.creastore.pro");
+
+			var route = new RoutesHostClient.Route();
+			route.ApiKey = "test";
+			route.ServiceName = "myservice";
+			route.WebApiAddress = "http://localhost:1234";
+
+			var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
+			RoutesHostClient.RoutesProvider.Current.RegisterProxy(new RoutesHostClient.ProxyRoute()
+			{
+				ApiKey = "test",
+				ServiceName = "myservice",
+				WebApiAddress = "http://proxy:1234"
+			});
+
+			RoutesHostClient.GlobalConfiguration.Configuration.UseProxy = true;
+			var address = RoutesHostClient.RoutesProvider.Current.Resolve(route.ApiKey, route.ServiceName);
+
+			Check.That(address).IsEqualTo("http://proxy:1234");
+
+			RoutesHostClient.RoutesProvider.Current.UnRegister(routeId);
+		}
+
+
+		[TestMethod]
 		public void Call_Service()
 		{
 			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress("http://routes.host");

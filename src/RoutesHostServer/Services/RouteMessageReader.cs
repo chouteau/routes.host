@@ -38,6 +38,9 @@ namespace RoutesHostServer.Services
 				case "unregisterservice":
 					RoutesProvider.Current.UnRegisterService(message.ApiKey, message.ServiceName, true);
 					break;
+				case "registerproxy":
+					RoutesProvider.Current.RegisterProxy(message.ProxyRoute, true);
+					break;
 				default:
 					break;
 			}

@@ -51,6 +51,16 @@ namespace RoutesHostClient
 			return new Guid(result);
 		}
 
+		public void RegisterProxy(ProxyRoute proxy)
+		{
+			ExecuteRetry<object>((client) =>
+			{
+				return client.PostAsJsonAsync($"api/routes/registerproxy", proxy).Result;
+			}, false);
+
+			GlobalConfiguration.Configuration.Logger.Info($"Proxy for service {proxy.ServiceName} was registered");
+		}
+
 		public void UnRegister(Guid routeId)
 		{
 			if (ResolvedTestUrl != null)
@@ -71,7 +81,7 @@ namespace RoutesHostClient
 			{
 				return ResolvedTestUrl;
 			}
-			var key = $"{apiKey}|{serviceName}";
+			var key = $"{apiKey}|{serviceName}|{GlobalConfiguration.Configuration.UseProxy}";
 			if (m_Cache.ContainsKey(key))
 			{
 				return m_Cache[key];
@@ -79,7 +89,7 @@ namespace RoutesHostClient
 
 			var result = ExecuteRetry<RoutesHostServer.Models.ResolveResult>((client) =>
 			{
-				var url = $"api/routes/resolve/?apiKey={apiKey}&serviceName={serviceName}";
+				var url = $"api/routes/resolve/?apiKey={apiKey}&serviceName={serviceName}&useproxy={GlobalConfiguration.Configuration.UseProxy}";
 				return client.GetAsync(url).Result;
 			}, true);
 
@@ -96,7 +106,7 @@ namespace RoutesHostClient
 
 		internal void RemoveCache(string apiKey, string serviceName)
 		{
-			var key = $"{apiKey}|{serviceName}";
+			var key = $"{apiKey}|{serviceName}|{GlobalConfiguration.Configuration.UseProxy}";
 			if (!m_Cache.ContainsKey(key))
 			{
 				return;

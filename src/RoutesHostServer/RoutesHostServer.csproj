@@ -151,6 +151,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\AdminUser.cs" />
+    <Compile Include="Models\ProxyRoute.cs" />
     <Compile Include="Models\RouteMessage.cs" />
     <Compile Include="Models\ResolveResult.cs" />
     <Compile Include="Models\Route.cs" />

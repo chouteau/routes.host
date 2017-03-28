@@ -35,14 +35,14 @@ namespace RoutesHostServer.Services
 
 		public Guid Register(Models.Route item, bool fromTopic = false)
 		{
-			var message = new Models.RouteMessage()
-			{
-				Action = "register",
-				Route = item,
-				Sender = Sender
-			};
 			if (!fromTopic)
 			{
+				var message = new Models.RouteMessage()
+				{
+					Action = "register",
+					Route = item,
+					Sender = Sender
+				};
 				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
 			}
 			var key = $"{item.ApiKey}|{item.ServiceName}".ToLower();
@@ -67,6 +67,8 @@ namespace RoutesHostServer.Services
 						{
 							route.WebApiAddress = item.WebApiAddress;
 							route.PingPath = item.PingPath;
+							route.MachineName = item.MachineName;
+							route.Ip = item.Ip;
 							id = route.Id;
 						}
 					}
@@ -87,16 +89,49 @@ namespace RoutesHostServer.Services
 			return id;
 		}
 
-		public void UnRegister(Guid routeId, bool fromTopic = false)
+		public void RegisterProxy(Models.ProxyRoute proxy, bool fromTopic = false)
 		{
-			var message = new Models.RouteMessage()
-			{
-				Action = "unregister",
-				RouteId = routeId,
-				Sender = Sender
-			};
 			if (!fromTopic)
 			{
+				var message = new Models.RouteMessage()
+				{
+					Action = "registerproxy",
+					ProxyRoute = proxy,
+					Sender = Sender
+				};
+				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
+			}
+
+			var key = $"{proxy.ApiKey}|{proxy.ServiceName}".ToLower();
+			var existing = RoutesRepository.ContainsKey(key);
+			if (existing)
+			{
+				List<Models.Route> routes = null;
+				Retry(list =>
+				{
+					var result = RoutesRepository.TryGetValue(key, out routes);
+					if (result)
+					{
+						foreach (var route in routes)
+						{
+							route.ProxyWebApiAddress = proxy.WebApiAddress;
+						}
+					}
+					return result;
+				});
+			}
+		}
+
+		public void UnRegister(Guid routeId, bool fromTopic = false)
+		{
+			if (!fromTopic)
+			{
+				var message = new Models.RouteMessage()
+				{
+					Action = "unregister",
+					RouteId = routeId,
+					Sender = Sender
+				};
 				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
 			}
 			foreach (var key in RoutesRepository.Keys)
@@ -125,16 +160,16 @@ namespace RoutesHostServer.Services
 
 		public void UnRegisterService(string apiKey, string serviceName, bool fromTopic = false)
 		{
-			var message = new Models.RouteMessage()
-			{
-				Action = "unregisterservice",
-				ApiKey = apiKey,
-				ServiceName = serviceName,
-				Sender = Sender
-			};
-
 			if (!fromTopic)
 			{
+				var message = new Models.RouteMessage()
+				{
+					Action = "unregisterservice",
+					ApiKey = apiKey,
+					ServiceName = serviceName,
+					Sender = Sender
+				};
+
 				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
 			}
 
@@ -153,7 +188,7 @@ namespace RoutesHostServer.Services
 			});
 		}
 
-		public string Resolve(string apiKey, string serviceName)
+		public string Resolve(string apiKey, string serviceName, bool useProxy = false)
 		{
 			var key = $"{apiKey}|{serviceName}".ToLower();
 			var exists = RoutesRepository.ContainsKey(key);
@@ -170,7 +205,15 @@ namespace RoutesHostServer.Services
 			if (routes != null)
 			{
 				var item = routes.OrderByDescending(i => i.Priority).FirstOrDefault();
-				return item.WebApiAddress;
+				if (useProxy
+					&& !string.IsNullOrWhiteSpace(item.ProxyWebApiAddress))
+				{
+					return item.ProxyWebApiAddress;
+				}
+				else
+				{
+					return item.WebApiAddress;
+				}
 			}
 			return null;
 		}

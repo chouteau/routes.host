@@ -32,8 +32,8 @@ namespace RoutesHostServer.Controllers
 				throw new ArgumentNullException();
 			}
 			if (route.ApiKey == null
-				|| route.ServiceName == null
-				|| route.WebApiAddress == null)
+				|| string.IsNullOrWhiteSpace(route.ServiceName)
+				|| string.IsNullOrWhiteSpace(route.WebApiAddress))
 			{
 				throw new ArgumentException("route is not valid");
 			}
@@ -41,6 +41,21 @@ namespace RoutesHostServer.Controllers
 			var uri = new Uri(route.WebApiAddress);
 			var result = Services.RoutesProvider.Current.Register(route);
 			return result;
+		}
+
+		[HttpPut]
+		[HttpPost]
+		[Route("registerproxy")]
+		public void RegisterProxy(Models.ProxyRoute proxy)
+		{
+			if (proxy == null
+				|| string.IsNullOrWhiteSpace(proxy.ApiKey)
+				|| string.IsNullOrWhiteSpace(proxy.WebApiAddress))
+			{
+				throw new ArgumentNullException();
+			}
+
+			Services.RoutesProvider.Current.RegisterProxy(proxy);
 		}
 
 		[HttpDelete]
@@ -58,8 +73,8 @@ namespace RoutesHostServer.Controllers
 		[Route("unregisterservice")]
 		public void UnRegisterService(string apiKey, string serviceName)
 		{
-			if (apiKey == null
-				|| serviceName == null)
+			if (string.IsNullOrWhiteSpace(apiKey)
+				|| string.IsNullOrWhiteSpace(serviceName))
 			{
 				throw new ArgumentNullException();
 			}
@@ -68,21 +83,21 @@ namespace RoutesHostServer.Controllers
 
 		[HttpGet]
 		[Route("resolve")]
-		public Models.ResolveResult Resolve(string apiKey, string serviceName)
+		public Models.ResolveResult Resolve(string apiKey, string serviceName, bool useProxy)
 		{
-			if (apiKey == null
-				|| serviceName == null)
+			if (string.IsNullOrWhiteSpace(apiKey)
+				|| string.IsNullOrWhiteSpace(serviceName))
 			{
 				throw new ArgumentNullException();
 			}
-			var result = Services.RoutesProvider.Current.Resolve(apiKey, serviceName);
+			var result = Services.RoutesProvider.Current.Resolve(apiKey, serviceName, useProxy);
 			return new Models.ResolveResult()
 			{
 				Address = result
 			};
 		}
 
-		public HttpRequestBase GetRequestBase()
+		private HttpRequestBase GetRequestBase()
 		{
 			if (Request == null
 				|| Request.Properties == null)
@@ -97,7 +112,7 @@ namespace RoutesHostServer.Controllers
 			return null;
 		}
 
-		public string GetClientIpAddress()
+		private string GetClientIpAddress()
 		{
 			var requestBase = GetRequestBase();
 			if (requestBase != null)
