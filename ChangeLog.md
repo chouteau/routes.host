@@ -1,5 +1,10 @@
 # ChangeLog 
 
+## 1.6.16 (Client)
+- Authorization header
+- Add user agent with current version
+- Possibility add proxy address for route
+
 ## 1.4.14.1 (Client)
 
 - Allow gzip with webapi 

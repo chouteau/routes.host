@@ -47,7 +47,12 @@ namespace RoutesHostClient
 
 					using (var httpClient = new System.Net.Http.HttpClient(handler))
 					{
+						httpClient.DefaultRequestHeaders.Add("UserAgent", $"RouteHostClient/{GlobalConfiguration.Configuration.Version} (http://routes.host)");
 						httpClient.BaseAddress = new Uri(baseAddress);
+						if(GlobalConfiguration.Configuration.Authorization != null)
+						{
+							httpClient.DefaultRequestHeaders.Authorization = GlobalConfiguration.Configuration.Authorization;
+						}
 						foreach (var headerName in RequestHeaders.AllKeys)
 						{
 							httpClient.DefaultRequestHeaders.Add(headerName, RequestHeaders[headerName]);
