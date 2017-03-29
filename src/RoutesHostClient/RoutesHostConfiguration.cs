@@ -10,8 +10,8 @@ namespace RoutesHostClient
 	{
 		private static Lazy<string> m_version = new Lazy<string>(() =>
 		{
-			var att = (System.Reflection.AssemblyInformationalVersionAttribute)typeof(GlobalConfiguration).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)[0];
-			return att.InformationalVersion;
+			var att = (System.Reflection.AssemblyFileVersionAttribute)typeof(GlobalConfiguration).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyFileVersionAttribute), false)[0];
+			return att.Version;
 		}, true);
 
 		public ILogger Logger { get; set; }
