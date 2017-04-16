@@ -188,7 +188,7 @@ namespace RoutesHostServer.Services
 			});
 		}
 
-		public string Resolve(string apiKey, string serviceName, bool useProxy = false)
+		public List<string> Resolve(string apiKey, string serviceName, bool useProxy = false)
 		{
 			var key = $"{apiKey}|{serviceName}".ToLower();
 			var exists = RoutesRepository.ContainsKey(key);
@@ -202,20 +202,23 @@ namespace RoutesHostServer.Services
 				var result = list.TryGetValue(key, out routes);
 				return result;
 			});
+			var routeList = new List<string>();
 			if (routes != null)
 			{
-				var item = routes.OrderByDescending(i => i.Priority).FirstOrDefault();
-				if (useProxy
-					&& !string.IsNullOrWhiteSpace(item.ProxyWebApiAddress))
+				foreach (var item in routes.OrderByDescending(i => i.Priority))
 				{
-					return item.ProxyWebApiAddress;
-				}
-				else
-				{
-					return item.WebApiAddress;
+					if (useProxy
+						&& !string.IsNullOrWhiteSpace(item.ProxyWebApiAddress))
+					{
+						routeList.Add(item.ProxyWebApiAddress);
+					}
+					else
+					{
+						routeList.Add(item.WebApiAddress);
+					}
 				}
 			}
-			return null;
+			return routeList;
 		}
 
 		public void Flush(string repositoryFolder)
@@ -256,7 +259,7 @@ namespace RoutesHostServer.Services
 				var content = System.IO.File.ReadAllText(fileName);
 				var item = Newtonsoft.Json.JsonConvert.DeserializeObject<Models.Route>(content);
 
-				Register(item);
+				Register(item, true);
 			}
 		}
 

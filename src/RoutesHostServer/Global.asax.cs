@@ -17,8 +17,12 @@ namespace RoutesHostServer
 			var topicName = System.Configuration.ConfigurationManager.AppSettings["TopicName"];
 
 			// Services.RouteSynchronizer.Current.Bus.Register.AddAzureTopicWriter("RoutesHostAction");
-			Services.RouteSynchronizer.Current.Bus.Register.AddAzureTopicReader("RoutesHostAction", topicName, typeof(Services.RouteMessageReader));
-			Services.RouteSynchronizer.Current.Bus.StartReading();
+			var cs = System.Configuration.ConfigurationManager.ConnectionStrings["RoutesHostAction"];
+			if (cs != null)
+			{
+				Services.RouteSynchronizer.Current.Bus.Register.AddAzureTopicReader("RoutesHostAction", topicName, typeof(Services.RouteMessageReader));
+				Services.RouteSynchronizer.Current.Bus.StartReading();
+			}
 
 			var repositoryFolder = System.Configuration.ConfigurationManager.AppSettings["repositoryFolder"];
 			if (repositoryFolder != null)

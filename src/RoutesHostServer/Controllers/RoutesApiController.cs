@@ -93,7 +93,8 @@ namespace RoutesHostServer.Controllers
 			var result = Services.RoutesProvider.Current.Resolve(apiKey, serviceName, useProxy);
 			return new Models.ResolveResult()
 			{
-				Address = result
+				Address = result.First(),
+				AddressList = result
 			};
 		}
 

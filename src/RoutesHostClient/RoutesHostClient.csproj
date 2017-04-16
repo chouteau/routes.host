@@ -55,11 +55,13 @@
     <Compile Include="GlobalConfiguration.cs" />
     <Compile Include="ILogger.cs" />
     <Compile Include="ProxyRoute.cs" />
+    <Compile Include="ResolvedRoute.cs" />
     <Compile Include="Route.cs" />
     <Compile Include="RouteServer.cs" />
     <Compile Include="RoutesHostConfiguration.cs" />
     <Compile Include="RoutesProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UnavailableRoute.cs" />
     <Compile Include="WebApiClient.cs" />
   </ItemGroup>
   <ItemGroup>

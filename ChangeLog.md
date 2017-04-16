@@ -1,5 +1,11 @@
 # ChangeLog 
 
+## 2.4 (Server)
+- Return all addresses with Resolve service method
+
+## 1.7.19 (Client)
+- Best detection of failed route resolution
+
 ## 1.6.16 (Client)
 - Authorization header
 - Add user agent with current version

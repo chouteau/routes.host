@@ -12,9 +12,9 @@ namespace RoutesHostClientTests
 	{
 		private static IDisposable m_Host;
 
-		public static void Start()
+		public static void Start(string baseAddress = "http://localhost:65432")
 		{
-			m_Host = Microsoft.Owin.Hosting.WebApp.Start("http://localhost:65432", (appBuilder) =>
+			m_Host = Microsoft.Owin.Hosting.WebApp.Start(baseAddress, (appBuilder) =>
 			{
 				var config = new HttpConfiguration();
 

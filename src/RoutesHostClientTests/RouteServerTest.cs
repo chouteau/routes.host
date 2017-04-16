@@ -27,9 +27,10 @@ namespace RoutesHostClientTests
 			return result;
 		}
 
-		public string Resolve(string apiKey, string serviceName)
+		public List<string> Resolve(string apiKey, string serviceName)
 		{
-			return RoutesHostServer.Services.RoutesProvider.Current.Resolve(apiKey, serviceName);
+			var result = RoutesHostServer.Services.RoutesProvider.Current.Resolve(apiKey, serviceName);
+			return result;
 		}
 
 		public void UnRegister(Guid routeId)

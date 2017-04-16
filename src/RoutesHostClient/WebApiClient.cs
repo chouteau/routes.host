@@ -24,80 +24,171 @@ namespace RoutesHostClient
 		public int RetryCount { get; private set; }
 		public int RetryIntervalInSecond { get; private set; }
 		public System.Collections.Specialized.NameValueCollection RequestHeaders { get; set; }
+		public Exception LastException { get; set; }
+
+		public void ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate)
+		{
+			ExecuteRetry<object>(predicate, false);
+		}
 
 		public T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, bool hasReturn = false)
 		{
-			var baseAddress = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
-			if (baseAddress == null)
-			{
-				throw new Exception($"baseAddress not found for needed service {ServiceName} with key {ApiKey.Substring(0,5)}...{ApiKey.Substring(ApiKey.Length-5)}");
-			}
-			var loop = 0;
 			T result = default(T);
+
+			var resolvedList = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
+			if (resolvedList == null
+				|| resolvedList.Count == 0)
+			{
+				RoutesProvider.Current.RemoveCache(ApiKey, ServiceName);
+				resolvedList = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
+				if (resolvedList == null
+					|| resolvedList.Count == 0)
+				{
+					var errorMessage = $"baseAddress not found for needed service {ServiceName} with key {ApiKey.Substring(0, 5)}...{ApiKey.Substring(ApiKey.Length - 5)}";
+					GlobalConfiguration.Configuration.Logger.Error(errorMessage);
+					LastException = new Exception(errorMessage);
+					return result;
+				}
+			}
+
+			var handler = new HttpClientHandler()
+			{
+				AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
+				AllowAutoRedirect = false,
+				UseCookies = false
+			};
+
+			var errorCount = 0;
 			while (true)
 			{
-				try
+				var availableAddress = GetAvailableAddress(resolvedList);
+				if (availableAddress == null)
 				{
-					var handler = new HttpClientHandler()
+					RoutesProvider.Current.RemoveCache(ApiKey, ServiceName);
+					resolvedList = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
+					if (resolvedList == null)
 					{
-						AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
-						AllowAutoRedirect = false,
-						UseCookies = true,
-					};
-
-					using (var httpClient = new System.Net.Http.HttpClient(handler))
+						var message = $"baseAddress not found for needed service {ServiceName} with key {ApiKey.Substring(0, 2)}...{ApiKey.Substring(ApiKey.Length - 2)}";
+						GlobalConfiguration.Configuration.Logger.Error(message);
+						LastException = new Exception(message);
+						return result;
+					}
+					availableAddress = GetAvailableAddress(resolvedList);
+					if (availableAddress == null)
 					{
-						httpClient.DefaultRequestHeaders.Add("UserAgent", $"RouteHostClient/{GlobalConfiguration.Configuration.Version} (http://routes.host)");
-						httpClient.BaseAddress = new Uri(baseAddress);
-						if(GlobalConfiguration.Configuration.Authorization != null)
-						{
-							httpClient.DefaultRequestHeaders.Authorization = GlobalConfiguration.Configuration.Authorization;
-						}
-						foreach (var headerName in RequestHeaders.AllKeys)
-						{
-							httpClient.DefaultRequestHeaders.Add(headerName, RequestHeaders[headerName]);
-						}
+						var message = $"Not available baseAddress found for needed service {ServiceName} with key {ApiKey.Substring(0, 2)}...{ApiKey.Substring(ApiKey.Length - 2)}";
+						GlobalConfiguration.Configuration.Logger.Error(message);
+						LastException = new Exception(message);
+						return result;
+					}
+				}
 
-						var response = predicate.Invoke(httpClient);
-						if (!response.IsSuccessStatusCode)
+				using (var httpClient = new System.Net.Http.HttpClient(handler, false))
+				{
+					httpClient.DefaultRequestHeaders.Add("UserAgent", $"RouteHostClient/{GlobalConfiguration.Configuration.Version} (http://routes.host)");
+					httpClient.BaseAddress = new Uri(availableAddress.Address);
+
+					if (GlobalConfiguration.Configuration.Authorization != null)
+					{
+						httpClient.DefaultRequestHeaders.Authorization = GlobalConfiguration.Configuration.Authorization;
+					}
+					foreach (var headerName in RequestHeaders.AllKeys)
+					{
+						httpClient.DefaultRequestHeaders.Add(headerName, RequestHeaders[headerName]);
+					}
+
+					HttpResponseMessage response = null;
+					try
+					{
+						response = predicate.Invoke(httpClient);
+						response.EnsureSuccessStatusCode();
+						availableAddress.LastAccessDate = DateTime.Now;
+						availableAddress.UseCount++;
+					}
+					catch(Exception ex)
+					{
+						var x = ex;
+						while (true)
 						{
-							if (loop > RetryCount)
+							if (x.InnerException == null)
 							{
-								if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+								GlobalConfiguration.Configuration.Logger.Error(x.Message);
+								if (x is System.Net.WebException)
 								{
-									RoutesProvider.Current.RemoveCache(ApiKey, ServiceName);
+									var webex = x as System.Net.WebException;
+									//if (webex.Status == System.Net.WebExceptionStatus.NameResolutionFailure)
+									//{
+									//	errorCount = RetryCount;
+									//}
+									if (resolvedList.Count == 1)
+									{
+										errorCount = RetryCount;
+									}
+									GlobalConfiguration.Configuration.Logger.Warn($"Adresse Base : {availableAddress.Address} not found");
+									RoutesProvider.Current.MarkAddressAsUnavailable(availableAddress);
 								}
+								else if (x is System.Net.Sockets.SocketException)
+								{
+									var sockex = x as System.Net.Sockets.SocketException;
+									// if (sockex.NativeErrorCode == 10061) // Connection Refused
+									// {
+									// 	errorCount = RetryCount;
+									// }
+									if (resolvedList.Count == 1)
+									{
+										errorCount = RetryCount;
+									}
+									GlobalConfiguration.Configuration.Logger.Warn($"Adresse Base : {availableAddress.Address} not found");
+									RoutesProvider.Current.MarkAddressAsUnavailable(availableAddress);
+								}
+								else if (x is System.Net.Http.HttpRequestException)
+								{
+									var reqex = x as System.Net.Http.HttpRequestException;
+									GlobalConfiguration.Configuration.Logger.Warn($"Service : {response.RequestMessage.RequestUri} not found");
+									errorCount = RetryCount;
+								}
+								else if (x is System.ObjectDisposedException)
+								{
+									errorCount = RetryCount;
+								}
+								LastException = x;
 								break;
 							}
-							loop++;
-							var errorMessage = response.ReasonPhrase;
-							errorMessage += $" {response.RequestMessage.RequestUri}";
-							GlobalConfiguration.Configuration.Logger.Error(errorMessage);
+							x = x.InnerException;
 						}
-						else
+						errorCount++;
+					}
+
+					if (response == null
+						|| !response.IsSuccessStatusCode)
+					{
+						if (errorCount > RetryCount)
 						{
-							if (hasReturn)
-							{
-								result = response.Content.ReadAsAsync<T>().Result;
-							}
 							break;
 						}
 					}
-				}
-				catch (Exception ex)
-				{
-					ex.Data.Add("apiKey", ApiKey);
-					ex.Data.Add("serviceName", ServiceName);
-					GlobalConfiguration.Configuration.Logger.Error(ex);
-					if (loop > RetryCount)
+					else
 					{
-						RoutesProvider.Current.RemoveCache(ApiKey, ServiceName);
+						if (hasReturn)
+						{
+							result = response.Content.ReadAsAsync<T>().Result;
+						}
 						break;
 					}
-					loop++;
 				}
 				System.Threading.Thread.Sleep(RetryIntervalInSecond * 1000);
 			}
+			return result;
+		}
+
+		private ResolvedRoute GetAvailableAddress(List<ResolvedRoute> list)
+		{
+			var result = list
+						.OrderBy(i => i.Order)
+						.FirstOrDefault(i => !i.IsAvailable.HasValue
+						|| i.IsAvailable.Value
+						|| i.ReleaseDate <= DateTime.Now);
+
 			return result;
 		}
 

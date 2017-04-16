@@ -14,11 +14,13 @@ namespace RoutesHostClient
 			return new RoutesProvider();
 		}, true);
 
-		private System.Collections.Concurrent.ConcurrentDictionary<string, string> m_Cache;
+		private System.Collections.Concurrent.ConcurrentDictionary<string, List<ResolvedRoute>> m_Cache;
+		private System.Collections.Concurrent.ConcurrentBag<UnavailableRoute> m_UnavailableRouteList;
 
 		private RoutesProvider()
 		{
-			m_Cache = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
+			m_Cache = new System.Collections.Concurrent.ConcurrentDictionary<string, List<ResolvedRoute>>();
+			m_UnavailableRouteList = new System.Collections.Concurrent.ConcurrentBag<UnavailableRoute>();
 			RouteServerList = new List<RouteServer>();
 		}
 
@@ -75,11 +77,31 @@ namespace RoutesHostClient
 			GlobalConfiguration.Configuration.Logger.Info($"Route for service {routeId} was unregistered");
 		}
 
-		public string Resolve(string apiKey, string serviceName)
+		public void UnRegisterService(string apiKey, string serviceName)
 		{
 			if (ResolvedTestUrl != null)
 			{
-				return ResolvedTestUrl;
+				return;
+			}
+			ExecuteRetry<object>((client) =>
+			{
+				return client.DeleteAsync($"api/routes/unregisterservice/?apiKey={apiKey}&serviceName={serviceName}").Result;
+			}, false);
+
+			GlobalConfiguration.Configuration.Logger.Info($"All routes for service {serviceName} was unregistered");
+		}
+
+		public List<ResolvedRoute> Resolve(string apiKey, string serviceName)
+		{
+			if (ResolvedTestUrl != null)
+			{
+				return new List<ResolvedRoute>()
+				{
+					new ResolvedRoute()
+					{
+						Address = ResolvedTestUrl
+					}
+				};
 			}
 			var key = $"{apiKey}|{serviceName}|{GlobalConfiguration.Configuration.UseProxy}";
 			if (m_Cache.ContainsKey(key))
@@ -93,15 +115,47 @@ namespace RoutesHostClient
 				return client.GetAsync(url).Result;
 			}, true);
 
-			if (result != null)
+			var resolvedList = new List<ResolvedRoute>();
+			if (result != null
+				&& result.AddressList.Count > 0)
 			{
 				if (!m_Cache.ContainsKey(key))
 				{
-					m_Cache.TryAdd(key, result.Address);
+					int order = 0;
+					foreach (var item in result.AddressList)
+					{
+						if (IsUnavailbleAddress(item))
+						{
+							continue;
+						}
+						resolvedList.Add(new ResolvedRoute()
+						{
+							Address = item,
+							Order = order++
+						});
+					}
+					m_Cache.TryAdd(key, resolvedList);
 				}
 			}
 
-			return result.Address;
+			return resolvedList;
+		}
+
+		internal void MarkAddressAsUnavailable(ResolvedRoute address)
+		{
+			address.IsAvailable = false;
+			address.ReleaseDate = DateTime.Now.AddMinutes(10);
+
+			if (m_UnavailableRouteList.Any(i => i.Address == address.Address))
+			{
+				return;
+			}
+
+			m_UnavailableRouteList.Add(new UnavailableRoute()
+			{
+				Address = address.Address,
+				ReleaseDate = address.ReleaseDate.Value
+			});
 		}
 
 		internal void RemoveCache(string apiKey, string serviceName)
@@ -111,7 +165,8 @@ namespace RoutesHostClient
 			{
 				return;
 			}
-			m_Cache.TryRemove(key, out serviceName);
+			List<ResolvedRoute> resolvedList = null;
+			m_Cache.TryRemove(key, out resolvedList);
 		}
 
 		internal void AddBaseAddress(string baseAddress)
@@ -160,6 +215,7 @@ namespace RoutesHostClient
 						GlobalConfiguration.Configuration.Logger.Error("internet access unavailable");
 						return default(T);
 					}
+					httpClient.DefaultRequestHeaders.Add("UserAgent", $"RouteHostClient/{GlobalConfiguration.Configuration.Version} (http://routes.host)");
 					httpClient.BaseAddress = new Uri(routeServer.BaseAdresse);
 
 					HttpResponseMessage response = null;
@@ -194,7 +250,8 @@ namespace RoutesHostClient
 						}
 					}
 					
-					if (response == null)
+					if (response == null
+						|| !response.IsSuccessStatusCode)
 					{
 						if (loop > 3)
 						{
@@ -223,5 +280,29 @@ namespace RoutesHostClient
 			return result;
 		}
 
+		private bool IsUnavailbleAddress(string address)
+		{
+			var loop = 0;
+			while(true)
+			{
+				var remove = m_UnavailableRouteList.FirstOrDefault(i => i.ReleaseDate < DateTime.Now);
+				if (remove == null)
+				{
+					break;
+				}
+				if (loop > 3)
+				{
+					break;
+				}
+				UnavailableRoute expired = null;
+				if (!m_UnavailableRouteList.TryTake(out expired))
+				{
+					loop++;
+					System.Threading.Thread.Sleep(100);
+				}
+			}
+			var result = m_UnavailableRouteList.Any(i => i.Address.Equals(address, StringComparison.InvariantCultureIgnoreCase));
+			return result;
+		}
 	}
 }
