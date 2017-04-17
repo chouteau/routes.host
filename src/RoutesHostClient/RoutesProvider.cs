@@ -144,7 +144,7 @@ namespace RoutesHostClient
 		internal void MarkAddressAsUnavailable(ResolvedRoute address)
 		{
 			address.IsAvailable = false;
-			address.ReleaseDate = DateTime.Now.AddMinutes(10);
+			address.ReleaseDate = DateTime.Now.AddSeconds(20);
 
 			if (m_UnavailableRouteList.Any(i => i.Address == address.Address))
 			{
