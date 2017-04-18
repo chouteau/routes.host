@@ -104,6 +104,7 @@ namespace RoutesHostClient
 						response.EnsureSuccessStatusCode();
 						availableAddress.LastAccessDate = DateTime.Now;
 						availableAddress.UseCount++;
+						availableAddress.FailCount = 0;
 					}
 					catch(Exception ex)
 					{
@@ -124,7 +125,7 @@ namespace RoutesHostClient
 									{
 										errorCount = RetryCount;
 									}
-									GlobalConfiguration.Configuration.Logger.Warn($"Adresse Base : {availableAddress.Address} not found");
+									GlobalConfiguration.Configuration.Logger.Warn($"Address Base : {availableAddress.Address} name resolution failure");
 									RoutesProvider.Current.MarkAddressAsUnavailable(availableAddress);
 								}
 								else if (x is System.Net.Sockets.SocketException)
@@ -138,7 +139,7 @@ namespace RoutesHostClient
 									{
 										errorCount = RetryCount;
 									}
-									GlobalConfiguration.Configuration.Logger.Warn($"Adresse Base : {availableAddress.Address} not found");
+									GlobalConfiguration.Configuration.Logger.Warn($"Address Base : {availableAddress.Address} Connection Refused");
 									RoutesProvider.Current.MarkAddressAsUnavailable(availableAddress);
 								}
 								else if (x is System.Net.Http.HttpRequestException)
@@ -185,6 +186,7 @@ namespace RoutesHostClient
 		{
 			var result = list
 						.OrderBy(i => i.Order)
+						.Where(i => i.FailCount < 10)
 						.FirstOrDefault(i => !i.IsAvailable.HasValue
 						|| i.IsAvailable.Value
 						|| i.ReleaseDate <= DateTime.Now);

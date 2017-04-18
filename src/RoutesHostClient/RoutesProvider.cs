@@ -145,6 +145,7 @@ namespace RoutesHostClient
 		{
 			address.IsAvailable = false;
 			address.ReleaseDate = DateTime.Now.AddSeconds(20);
+			address.FailCount++;
 
 			if (m_UnavailableRouteList.Any(i => i.Address == address.Address))
 			{

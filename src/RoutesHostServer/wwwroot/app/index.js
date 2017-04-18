@@ -2,20 +2,21 @@
 {
     'use strict';
 
-    angular
-        .module('routesHost', [
+	angular
+		.module('routesHost', [
 			'ngResource',
 			'ngMaterial',
 			'ngAria',
 			'ngMessages',
 			'ngCookies',
 			'ui.router'
-        ])
-        .run(runBlock) 
+		])
+		.run(runBlock)
 		.config(routeConfig)
 		.factory('webApiService', webApiService)
 		.controller('LoginController', LoginController)
-		.controller('RoutesController', RoutesController);
+		.controller('RoutesController', RoutesController)
+		.controller('ResolveRouteController', ResolveRouteController);
 
     function runBlock($rootScope, $timeout, $state, $cookies, $location, $http)
     {
@@ -63,44 +64,56 @@
     {
         $locationProvider.html5Mode(false).hashPrefix('!');
 
-        $urlRouterProvider.otherwise('/routes');
+		$urlRouterProvider.otherwise('/resolve');
 
         // State definitions
-        $stateProvider
-            .state('app', {
-                abstract: true,
-                views   : {
-                    'main@'         : {
-                        templateUrl: '/wwwroot/app/layouts/vertical.html',
-                        controller : 'MainController as vm'
-                    },
-                    'navigation@app': {
-                        templateUrl: '/wwwroot/app/layouts/navigation.html',
-                        controller : 'NavigationController as vm'
-                    }
-                }
-            })
+		$stateProvider
+			.state('app', {
+				abstract: true,
+				views: {
+					'main@': {
+						templateUrl: '/wwwroot/app/layouts/vertical.html',
+						controller: 'MainController as vm'
+					},
+					'navigation@app': {
+						templateUrl: '/wwwroot/app/layouts/navigation.html',
+						controller: 'NavigationController as vm'
+					}
+				}
+			})
 			.state('app.pages_auth_login', {
-				url      : '/login',
-				views    : {
-					'main@'                       : {
+				url: '/login',
+				views: {
+					'main@': {
 						templateUrl: '/wwwroot/app/layouts/content-only.html'
 					},
 					'content@app.pages_auth_login': {
 						templateUrl: '/wwwroot/app/auth/login.html',
-						controller : 'LoginController as vm'
+						controller: 'LoginController as vm'
 					}
 				}
 			})
-			.state('app.routes' , {
-				url : '/routes',
-				views : {
-					'main@' : {
+			.state('app.resolve', {
+				url: '/resolve',
+				views: {
+					'main@': {
 						templateUrl: '/wwwroot/app/layouts/vertical.html'
 					},
-					'content@app.routes' : {
-						templateUrl : '/wwwroot/app/main/routes.html',
-						controller : 'RoutesController as vm'
+					'content@app.resolve': {
+						templateUrl: '/wwwroot/app/main/resolve.html',
+						controller: 'ResolveRouteController as vm'
+					}
+				}
+			})
+			.state('app.routes', {
+				url: '/routes',
+				views: {
+					'main@': {
+						templateUrl: '/wwwroot/app/layouts/vertical.html'
+					},
+					'content@app.routes': {
+						templateUrl: '/wwwroot/app/main/routes.html',
+						controller: 'RoutesController as vm'
 					}
 				}
 			});
@@ -112,8 +125,9 @@
 			authenticate : authenticate,
 			getRoutes : getRoutes,
 			unRegister : unRegister,
-			unRegisterService : unRegisterService,
-			waitForUser : waitForUser
+			unRegisterService: unRegisterService,
+			resolve : resolve,
+			waitForUser: waitForUser
 		};
 
 		return svc;
@@ -155,6 +169,19 @@
 				params : {
 					apiKey : apiKey,
 					serviceName : serviceName
+				}
+			});
+			return result;
+		}
+
+		function resolve(apiKey, serviceName) {
+			var result = $http({
+				method: 'GET',
+				url: '/api/routes/resolve',
+				params: {
+					apiKey: apiKey,
+					serviceName: serviceName,
+					useProxy : false
 				}
 			});
 			return result;
@@ -229,6 +256,23 @@
 		{
 			loadRoutes();
 		});
+	}
+
+	function ResolveRouteController($rootScope, $location, webApiService) {
+		var vm = this;
+
+		vm.apiKey = null;
+		vm.serviceName = null;
+		vm.routeList = [];
+
+		vm.resolveRoute = resolveRoute;
+
+		function resolveRoute() {
+			console.log('try to resolve route');
+			webApiService.resolve(vm.apiKey, vm.serviceName).then(function (response) {
+				vm.routeList = response.data;
+			});
+		}
 	}
 
 })();

@@ -91,10 +91,15 @@ namespace RoutesHostServer.Controllers
 				throw new ArgumentNullException();
 			}
 			var result = Services.RoutesProvider.Current.Resolve(apiKey, serviceName, useProxy);
+			string address = null;
+			if (result != null)
+			{
+				address = result.FirstOrDefault();
+			}
 			return new Models.ResolveResult()
 			{
-				Address = result.First(),
-				AddressList = result
+				Address = address,
+				AddressList = result ?? new List<string>()
 			};
 		}
 

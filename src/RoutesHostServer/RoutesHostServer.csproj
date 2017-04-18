@@ -166,6 +166,7 @@
     <Content Include="wwwroot\app\layouts\content-only.html" />
     <Content Include="wwwroot\app\layouts\navigation.html" />
     <Content Include="wwwroot\app\layouts\vertical.html" />
+    <Content Include="wwwroot\app\main\resolve.html" />
     <Content Include="wwwroot\app\main\routes.html" />
     <None Include="wwwroot\app\index.cshtml" />
     <Content Include="Web.config" />

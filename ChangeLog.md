@@ -1,5 +1,11 @@
 # ChangeLog 
 
+## 1.7.21.1 (Client)
+Client : Remove route after 10 fail access
+
+## 2.4.0.1 (Server)
+Server : Fix bug when resolve address is null
+
 ## 2.4 (Server)
 - Return all addresses with Resolve service method
 

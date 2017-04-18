@@ -214,6 +214,12 @@ namespace RoutesHostClientTests
 			RoutesHostClient.RoutesProvider.Current.UnRegister(routeId2);
 		}
 
+		[TestMethod]
+		public void Resolve_Route()
+		{
+			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress("http://route1.creastore.pro");
+			var resolve = RoutesHostClient.RoutesProvider.Current.Resolve("74c967f8-d5c6-40c6-a069-bc36e634661e", "CreaStore.Services.ITrackerService");
+		}
 
 	}
 }

@@ -14,5 +14,6 @@ namespace RoutesHostClient
 		public DateTime? ReleaseDate { get; set; }
 		public bool? IsAvailable { get; set; }
 		public int UseCount { get; set; }
+		public int FailCount { get; set; }
 	}
 }
