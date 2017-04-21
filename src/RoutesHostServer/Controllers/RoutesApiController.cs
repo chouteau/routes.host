@@ -66,7 +66,7 @@ namespace RoutesHostServer.Controllers
 			{
 				throw new ArgumentNullException();
 			}
-			Services.RoutesProvider.Current.UnRegister(id);
+			Services.RoutesProvider.Current.UnRegister(id, false);
 		}
 
 		[HttpDelete]

@@ -17,11 +17,13 @@ namespace RoutesHostServer.Services
 
 		internal ConcurrentDictionary<string, List<Models.Route>> RoutesRepository { get; private set; }
 		internal ConcurrentBag<string> PingUriList { get; private set; }
+		internal ConcurrentBag<Models.ProxyRoute> ProxyList { get; private set; }
 		protected string Sender { get; set; }
 
 		private RoutesProvider()
 		{
 			RoutesRepository = new ConcurrentDictionary<string, List<Models.Route>>();
+			ProxyList = new ConcurrentBag<Models.ProxyRoute>();
 			Sender = System.Configuration.ConfigurationManager.AppSettings["TopicName"];
 		}
 		
@@ -45,9 +47,9 @@ namespace RoutesHostServer.Services
 				};
 				RouteSynchronizer.Current.Bus.Send("RoutesHostAction", message);
 			}
+			Guid id = Guid.Empty;
 			var key = $"{item.ApiKey}|{item.ServiceName}".ToLower();
 			var existing = RoutesRepository.ContainsKey(key);
-			Guid id = Guid.Empty;
 			if (existing)
 			{
 				List<Models.Route> routes = null;
@@ -71,16 +73,23 @@ namespace RoutesHostServer.Services
 							route.Ip = item.Ip;
 							id = route.Id;
 						}
+
+						var proxy = ProxyList.FirstOrDefault(i => $"{i.ApiKey}|{i.ServiceName}".Equals(key, StringComparison.InvariantCultureIgnoreCase));
+						if (proxy != null)
+						{
+							route.ProxyWebApiAddress = proxy.WebApiAddress;
+						}
 					}
 					return result;
 				});
 				return id;
 			}
-			item.CreationDate = DateTime.Now;
+
 			Retry((list) =>
 			{
 				var routes = new List<Models.Route>();
 				id = item.Id = Guid.NewGuid();
+				item.CreationDate = DateTime.Now;
 				routes.Add(item);
 				var result = RoutesRepository.TryAdd(key, routes);
 				return result;
@@ -119,6 +128,7 @@ namespace RoutesHostServer.Services
 					}
 					return result;
 				});
+				ProxyList.Add(proxy);
 			}
 		}
 
