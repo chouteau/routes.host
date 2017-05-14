@@ -1,7 +1,7 @@
 ﻿Filter : <input type="text" ng-model="vm.search" /><input type="submit" value="Search"/>
 
 <ul>
-	<li ng-repeat="service in vm.routes">
+	<li ng-repeat="service in vm.routes | orderBy : 'key' ">
 		<strong>{{service.key}}</strong><br/>
 		<button ng-click="vm.deleteService(service)">Delete Service</button>
 		<ul>

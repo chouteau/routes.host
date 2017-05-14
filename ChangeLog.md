@@ -1,5 +1,8 @@
 # ChangeLog 
 
+## 1.8.22.0 (Client)
+Add GetAvailableRoute for RouteHostClient
+
 ## 1.7.21.1 (Client)
 Client : Remove route after 10 fail access
 

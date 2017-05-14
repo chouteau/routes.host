@@ -51,5 +51,19 @@ namespace RoutesHostServer
 
 			Services.RouteSynchronizer.Current.Bus.StopReading();
 		}
+
+		protected void Application_Error(object sender, EventArgs e)
+		{
+			try
+			{
+				var ex = Context.Server.GetLastError();
+				Services.Logger.Writer.Error(ex);
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.EventLog.WriteEntry("Application", ex.ToString(), System.Diagnostics.EventLogEntryType.Error);
+			}
+		}
+
 	}
 }

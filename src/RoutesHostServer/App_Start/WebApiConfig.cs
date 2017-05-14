@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web.Http.ExceptionHandling;
 
 using Newtonsoft.Json.Serialization;
 
@@ -24,11 +25,25 @@ namespace RoutesHostServer
 			// Web API routes
 			config.MapHttpAttributeRoutes();
 
-            config.Routes.MapHttpRoute(
+			config.Services.Add(typeof(IExceptionLogger), new WebApiExceptionLogger());
+
+			config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
         }
-    }
+
+		public class WebApiExceptionLogger : ExceptionLogger
+		{
+			public override void Log(ExceptionLoggerContext context)
+			{
+				context.Exception.Data.Add("ApiMethod", context.Request.Method.ToString());
+				context.Exception.Data.Add("RequestUri", context.Request.RequestUri.ToString());
+				context.Exception.Data.Add("Content", context.Request.Content.ToString());
+				Services.Logger.Writer.Error(context.Exception);
+			}
+		}
+
+	}
 }

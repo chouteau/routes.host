@@ -26,7 +26,7 @@ namespace RoutesHostClient
 		public System.Collections.Specialized.NameValueCollection RequestHeaders { get; set; }
 		public Exception LastException { get; set; }
 
-		public void ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate)
+		public void ExecuteRetry(Func<HttpClient, HttpResponseMessage> predicate)
 		{
 			ExecuteRetry<object>(predicate, false);
 		}
@@ -180,6 +180,28 @@ namespace RoutesHostClient
 				System.Threading.Thread.Sleep(RetryIntervalInSecond * 1000);
 			}
 			return result;
+		}
+
+		public ResolvedRoute GetAvailableRoute()
+		{
+			var resolvedList = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
+			if (resolvedList == null
+				|| resolvedList.Count == 0)
+			{
+				RoutesProvider.Current.RemoveCache(ApiKey, ServiceName);
+				resolvedList = RoutesProvider.Current.Resolve(ApiKey, ServiceName);
+				if (resolvedList == null
+					|| resolvedList.Count == 0)
+				{
+					var errorMessage = $"baseAddress not found for needed service {ServiceName} with key {ApiKey.Substring(0, 5)}...{ApiKey.Substring(ApiKey.Length - 5)}";
+					GlobalConfiguration.Configuration.Logger.Error(errorMessage);
+					LastException = new Exception(errorMessage);
+					return null;
+				}
+			}
+
+			var availableAddress = GetAvailableAddress(resolvedList);
+			return availableAddress;
 		}
 
 		private ResolvedRoute GetAvailableAddress(List<ResolvedRoute> list)

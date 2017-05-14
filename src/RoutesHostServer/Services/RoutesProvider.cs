@@ -77,7 +77,11 @@ namespace RoutesHostServer.Services
 						var proxy = ProxyList.FirstOrDefault(i => $"{i.ApiKey}|{i.ServiceName}".Equals(key, StringComparison.InvariantCultureIgnoreCase));
 						if (proxy != null)
 						{
-							route.ProxyWebApiAddress = proxy.WebApiAddress;
+							if (route != null)
+							{
+								route.ProxyWebApiAddress = proxy.WebApiAddress;
+							}
+							item.ProxyWebApiAddress = proxy.WebApiAddress;
 						}
 					}
 					return result;
