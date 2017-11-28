@@ -19,5 +19,16 @@ namespace RoutesHostClientTests
 				Date = DateTime.Now
 			};
 		}
+
+		[Route("timeout/{sleepInSecond}")]
+		[HttpGet]
+		public object Timeout(int sleepInSecond)
+		{
+			System.Threading.Thread.Sleep(sleepInSecond * 1000);
+			return new
+			{
+				timeout = sleepInSecond
+			};
+		}
 	}
 }

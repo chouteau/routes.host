@@ -38,6 +38,10 @@ namespace RoutesHostServer.Controllers
 				throw new ArgumentException("route is not valid");
 			}
 			route.Ip = GetClientIpAddress();
+			if (route.WebApiAddress.IndexOf("/autodetectip") != -1)
+			{
+				route.WebApiAddress = route.WebApiAddress.Replace("/autodetectip", $"/{route.Ip}");
+			}
 			var uri = new Uri(route.WebApiAddress);
 			var result = Services.RoutesProvider.Current.Register(route);
 			return result;

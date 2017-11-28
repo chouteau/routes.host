@@ -25,13 +25,21 @@ namespace RoutesHostClient
 		public int RetryIntervalInSecond { get; private set; }
 		public System.Collections.Specialized.NameValueCollection RequestHeaders { get; set; }
 		public Exception LastException { get; set; }
+		public event EventHandler ResolveAdressFailed;
+		public event EventHandler<Exception> RequestFailed;
+		public event EventHandler<string> NotResolvableAddress;
 
-		public void ExecuteRetry(Func<HttpClient, HttpResponseMessage> predicate)
+		public void ExecuteRetry(Func<HttpClient, HttpResponseMessage> predicate, int timeoutInSecond = 60)
 		{
-			ExecuteRetry<object>(predicate, false);
+			ExecuteRetry<object>(predicate, false, timeoutInSecond);
 		}
 
-		public T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, bool hasReturn = false)
+		public T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, int timeOutInSecond = 60)
+		{
+			return ExecuteRetry<T>(predicate, true, timeOutInSecond);
+		}
+
+		public T ExecuteRetry<T>(Func<HttpClient, HttpResponseMessage> predicate, bool hasReturn = false, int? timeOutInSecond = 60)
 		{
 			T result = default(T);
 
@@ -44,6 +52,10 @@ namespace RoutesHostClient
 				if (resolvedList == null
 					|| resolvedList.Count == 0)
 				{
+					if (ResolveAdressFailed != null)
+					{
+						ResolveAdressFailed(this, EventArgs.Empty);
+					}
 					var errorMessage = $"baseAddress not found for needed service {ServiceName} with key {ApiKey.Substring(0, 5)}...{ApiKey.Substring(ApiKey.Length - 5)}";
 					GlobalConfiguration.Configuration.Logger.Error(errorMessage);
 					LastException = new Exception(errorMessage);
@@ -87,6 +99,10 @@ namespace RoutesHostClient
 				{
 					httpClient.DefaultRequestHeaders.Add("UserAgent", $"RouteHostClient/{GlobalConfiguration.Configuration.Version} (http://routes.host)");
 					httpClient.BaseAddress = new Uri(availableAddress.Address);
+					if (timeOutInSecond.HasValue)
+					{
+						httpClient.Timeout = TimeSpan.FromSeconds(timeOutInSecond.Value);
+					}
 
 					if (GlobalConfiguration.Configuration.Authorization != null)
 					{
@@ -108,12 +124,16 @@ namespace RoutesHostClient
 					}
 					catch(Exception ex)
 					{
+						if (RequestFailed != null)
+						{
+							RequestFailed(this, ex);
+						}
 						var x = ex;
 						while (true)
 						{
 							if (x.InnerException == null)
 							{
-								GlobalConfiguration.Configuration.Logger.Error(x.Message);
+								GlobalConfiguration.Configuration.Logger.Warn(x.Message);
 								if (x is System.Net.WebException)
 								{
 									var webex = x as System.Net.WebException;
@@ -127,6 +147,10 @@ namespace RoutesHostClient
 									}
 									GlobalConfiguration.Configuration.Logger.Warn($"Address Base : {availableAddress.Address} name resolution failure");
 									RoutesProvider.Current.MarkAddressAsUnavailable(availableAddress);
+									if (NotResolvableAddress != null)
+									{
+										NotResolvableAddress(this, availableAddress.Address);
+									}
 								}
 								else if (x is System.Net.Sockets.SocketException)
 								{
@@ -145,12 +169,16 @@ namespace RoutesHostClient
 								else if (x is System.Net.Http.HttpRequestException)
 								{
 									var reqex = x as System.Net.Http.HttpRequestException;
-									GlobalConfiguration.Configuration.Logger.Warn($"Service : {response.RequestMessage.RequestUri} not found");
+									GlobalConfiguration.Configuration.Logger.Warn($"Service : {availableAddress.Address} not found");
 									errorCount = RetryCount;
 								}
 								else if (x is System.ObjectDisposedException)
 								{
 									errorCount = RetryCount;
+								} 
+								else if (x is System.Threading.Tasks.TaskCanceledException)
+								{
+									GlobalConfiguration.Configuration.Logger.Warn($"Service : {availableAddress.Address} has timeout");
 								}
 								LastException = x;
 								break;

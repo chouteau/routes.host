@@ -70,12 +70,12 @@ namespace RoutesHostClientTests
 			var routeServer = new RouteServerTest();
 			
 			var route = new RoutesHostClient.Route();
-			route.ApiKey = Guid.NewGuid().ToString();
+			route.ApiKey = "9e9b7607-9999-47f4-a945-ea64e58ddf09";
 			route.ServiceName = "ping";
 			route.WebApiAddress = baseAddress;
 
 			var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
-			var webapiClient = new RoutesHostClient.WebApiClient("test", "ping");
+			var webapiClient = new RoutesHostClient.WebApiClient(route.ApiKey, "ping");
 
 			var content = webapiClient.ExecuteRetry<object>(client =>
 			{
@@ -119,6 +119,56 @@ namespace RoutesHostClientTests
 			RoutesHostClient.RoutesProvider.Current.UnRegister(routeId);
 		}
 
+		[TestMethod]
+		public void Call_Not_Existing_Address()
+		{
+			var route = new RoutesHostClient.Route();
+			var apiKey = route.ApiKey = "a40e9ae9-1374-4076-ac79-320c80727e27";
+			route.ServiceName = "ping"; 
+			route.WebApiAddress = "http://dummy";
+
+			var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
+			var webapiClient = new RoutesHostClient.WebApiClient(apiKey, "ping");
+
+			var content = webapiClient.ExecuteRetry<object>(client =>
+			{
+				var result = client.GetAsync("api/pingservice/ping2").Result;
+				return result;
+			}, true);
+
+			Check.That(content).IsNull();
+			Check.That(webapiClient.LastException).IsNotNull();
+		}
+
+		[TestMethod]
+		public void Call_Service_With_Timeout()
+		{
+			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress(Server);
+
+			var baseAddress = "http://localhost:65432/";
+			MiniServer.Start(baseAddress);
+			var routeServer = new RouteServerTest();
+
+			var route = new RoutesHostClient.Route();
+			var apiKey = route.ApiKey = "a40e9ae9-1374-4076-ac79-320c80727e27";
+			route.ServiceName = "ping"; // <- not exists
+			route.WebApiAddress = baseAddress;
+
+			var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
+			var webapiClient = new RoutesHostClient.WebApiClient(apiKey, "ping");
+
+			var content = webapiClient.ExecuteRetry<object>(client =>
+			{
+				var result = client.GetAsync("api/pingservice/ping2", System.Net.Http.HttpCompletionOption.ResponseContentRead).Result;
+				return result;
+			}, true);
+
+			Check.That(content).IsNull();
+			Check.That(webapiClient.LastException).IsNotNull();
+			MiniServer.Stop();
+
+			RoutesHostClient.RoutesProvider.Current.UnRegister(routeId);
+		}
 
 		[TestMethod]
 		public void Call_Fail_Route_And_Use_Alternative_Route()
@@ -219,6 +269,35 @@ namespace RoutesHostClientTests
 		{
 			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress("http://route1.creastore.pro");
 			var resolve = RoutesHostClient.RoutesProvider.Current.Resolve("74c967f8-d5c6-40c6-a069-bc36e634661e", "CreaStore.Services.ITrackerService");
+		}
+
+		[TestMethod]
+		public void Call_Service_With_Timeout2()
+		{
+			RoutesHostClient.GlobalConfiguration.Configuration.AddAddress(Server);
+
+			var baseAddress = "http://localhost:65433/";
+			MiniServer.Start(baseAddress);
+			var routeServer = new RouteServerTest();
+
+			var route = new RoutesHostClient.Route();
+			route.ApiKey = "9e9b7607-9999-47f4-a945-ea64e58ddf09";
+			route.ServiceName = "timeout";
+			route.WebApiAddress = baseAddress;
+
+			var routeId = RoutesHostClient.RoutesProvider.Current.Register(route);
+			var webapiClient = new RoutesHostClient.WebApiClient(route.ApiKey, "timeout");
+
+			var content = webapiClient.ExecuteRetry<object>(client =>
+			{
+				var result = client.GetAsync("api/pingservice/timeout/10").Result;
+				return result;
+			}, 5); // <- Timeout 5s
+
+			Check.That(content).IsNull();
+			MiniServer.Stop();
+
+			RoutesHostClient.RoutesProvider.Current.UnRegister(routeId);
 		}
 
 	}
